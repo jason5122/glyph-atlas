@@ -6,7 +6,6 @@ mod display;
 mod event;
 mod point;
 mod renderer;
-mod window_context;
 
 mod gl {
     #![allow(clippy::all)]

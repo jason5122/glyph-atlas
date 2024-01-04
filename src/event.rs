@@ -9,7 +9,12 @@ use winit::event_loop::{ControlFlow, DeviceEvents, EventLoop, EventLoopWindowTar
 use winit::platform::run_return::EventLoopExtRunReturn;
 use winit::window::WindowId;
 
-use crate::window_context::WindowContext;
+use glutin::context::NotCurrentContext;
+use raw_window_handle::HasRawDisplayHandle;
+
+use crate::display::window::Window;
+use crate::display::Display;
+use crate::renderer;
 
 /// Alacritty events.
 #[derive(Clone)]
@@ -125,5 +130,45 @@ impl Processor {
         } else {
             Err(format!("Event loop terminated with code: {}", exit_code).into())
         }
+    }
+}
+
+/// Event context for one individual Alacritty window.
+pub struct WindowContext {
+    pub display: Display,
+}
+
+impl WindowContext {
+    /// Create initial window context that dous bootstrapping the graphics Api we're going to use.
+    pub fn initial(event_loop: &EventLoopWindowTarget<Event>) -> Result<Self, Box<dyn Error>> {
+        let raw_display_handle = event_loop.raw_display_handle();
+
+        #[cfg(not(windows))]
+        let raw_window_handle = None;
+
+        let gl_display =
+            renderer::platform::create_gl_display(raw_display_handle, raw_window_handle)?;
+        let gl_config = renderer::platform::pick_gl_config(&gl_display, raw_window_handle)?;
+
+        #[cfg(not(windows))]
+        let window = Window::new(event_loop)?;
+
+        // Create context.
+        let gl_context =
+            renderer::platform::create_gl_context(&gl_display, &gl_config, raw_window_handle)?;
+
+        Self::new(window, gl_context)
+    }
+
+    /// Create a new terminal window context.
+    fn new(window: Window, context: NotCurrentContext) -> Result<Self, Box<dyn Error>> {
+        let display = Display::new(window, context)?;
+
+        Ok(WindowContext { display })
+    }
+
+    /// ID of this terminal context.
+    pub fn id(&self) -> WindowId {
+        self.display.window.id()
     }
 }
