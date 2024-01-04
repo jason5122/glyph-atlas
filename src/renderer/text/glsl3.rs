@@ -421,7 +421,7 @@ pub struct TextShaderProgram {
 
 impl TextShaderProgram {
     pub fn new() -> Result<TextShaderProgram, Error> {
-        let program = ShaderProgram::new(None, TEXT_SHADER_V, TEXT_SHADER_F)?;
+        let program = ShaderProgram::new(None, TEXT_SHADER_V, TEXT_SHADER_F);
         Ok(Self {
             u_projection: program.get_uniform_location(cstr!("projection"))?,
             u_cell_dim: program.get_uniform_location(cstr!("cellDim"))?,

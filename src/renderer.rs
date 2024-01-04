@@ -78,10 +78,6 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    /// Create a new renderer.
-    ///
-    /// This will automatically pick between the GLES2 and GLSL3 renderer based on the GPU's
-    /// supported OpenGL version.
     pub fn new(context: &PossiblyCurrentContext) -> Result<Self, Error> {
         // We need to load OpenGL functions once per instance, but only after we make our context
         // current due to WGL limitations.
@@ -94,7 +90,7 @@ impl Renderer {
         }
 
         let text_renderer = Glsl3Renderer::new()?;
-        let rect_renderer = RectRenderer::new()?;
+        let rect_renderer = RectRenderer::new();
 
         Ok(Self { text_renderer, rect_renderer })
     }

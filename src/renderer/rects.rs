@@ -3,8 +3,8 @@ use std::mem;
 use crate::display::{Rgb, SizeInfo};
 use crate::gl;
 use crate::gl::types::*;
-use crate::renderer::shader::{ShaderError, ShaderProgram};
-use crate::renderer::{self, cstr};
+use crate::renderer::cstr;
+use crate::renderer::shader::ShaderProgram;
 
 #[derive(Debug, Copy, Clone)]
 pub struct RenderRect {
@@ -60,11 +60,11 @@ pub struct RectRenderer {
 }
 
 impl RectRenderer {
-    pub fn new() -> Result<Self, renderer::Error> {
+    pub fn new() -> Self {
         let mut vao: GLuint = 0;
         let mut vbo: GLuint = 0;
 
-        let rect_program = RectShaderProgram::new()?;
+        let rect_program = RectShaderProgram::new();
 
         unsafe {
             // Allocate buffers.
@@ -107,7 +107,7 @@ impl RectRenderer {
         }
 
         let programs = [rect_program];
-        Ok(Self { vao, vbo, programs, vertices: Default::default() })
+        Self { vao, vbo, programs, vertices: Default::default() }
     }
 
     pub fn draw(&mut self, size_info: &SizeInfo, rects: Vec<RenderRect>) {
@@ -219,16 +219,16 @@ pub struct RectShaderProgram {
 }
 
 impl RectShaderProgram {
-    pub fn new() -> Result<Self, ShaderError> {
-        let program = ShaderProgram::new(None, RECT_SHADER_V, RECT_SHADER_F)?;
+    pub fn new() -> Self {
+        let program = ShaderProgram::new(None, RECT_SHADER_V, RECT_SHADER_F);
 
-        Ok(Self {
+        Self {
             u_cell_width: program.get_uniform_location(cstr!("cellWidth")).ok(),
             u_cell_height: program.get_uniform_location(cstr!("cellHeight")).ok(),
             u_padding_x: program.get_uniform_location(cstr!("paddingX")).ok(),
             u_padding_y: program.get_uniform_location(cstr!("paddingY")).ok(),
             program,
-        })
+        }
     }
 
     fn id(&self) -> GLuint {

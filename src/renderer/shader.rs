@@ -13,9 +13,9 @@ impl ShaderProgram {
         shader_header: Option<&str>,
         vertex_shader: &'static str,
         fragment_shader: &'static str,
-    ) -> Result<Self, ShaderError> {
-        let vertex_shader = Shader::new(shader_header, gl::VERTEX_SHADER, vertex_shader)?;
-        let fragment_shader = Shader::new(shader_header, gl::FRAGMENT_SHADER, fragment_shader)?;
+    ) -> Self {
+        let vertex_shader = Shader::new(shader_header, gl::VERTEX_SHADER, vertex_shader);
+        let fragment_shader = Shader::new(shader_header, gl::FRAGMENT_SHADER, fragment_shader);
 
         let program = unsafe { Self(gl::CreateProgram()) };
 
@@ -27,11 +27,7 @@ impl ShaderProgram {
             gl::GetProgramiv(program.id(), gl::LINK_STATUS, &mut success);
         }
 
-        if success != i32::from(gl::TRUE) {
-            return Err(ShaderError::Link(get_program_info_log(program.id())));
-        }
-
-        Ok(program)
+        program
     }
 
     /// Get uniform location by name. Panic if failed.
@@ -61,11 +57,7 @@ impl Drop for ShaderProgram {
 struct Shader(GLuint);
 
 impl Shader {
-    fn new(
-        shader_header: Option<&str>,
-        kind: GLenum,
-        source: &'static str,
-    ) -> Result<Self, ShaderError> {
+    fn new(shader_header: Option<&str>, kind: GLenum, source: &'static str) -> Self {
         let version_header = "#version 330 core\n";
         let mut sources = Vec::<*const GLchar>::with_capacity(3);
         let mut lengthes = Vec::<GLint>::with_capacity(3);
@@ -94,11 +86,7 @@ impl Shader {
             gl::GetShaderiv(shader.id(), gl::COMPILE_STATUS, &mut success);
         }
 
-        if success == GLint::from(gl::TRUE) {
-            Ok(shader)
-        } else {
-            Err(ShaderError::Compile(get_shader_info_log(shader.id())))
-        }
+        shader
     }
 
     fn id(&self) -> GLuint {
@@ -112,58 +100,8 @@ impl Drop for Shader {
     }
 }
 
-fn get_program_info_log(program: GLuint) -> String {
-    // Get expected log length.
-    let mut max_length: GLint = 0;
-    unsafe {
-        gl::GetProgramiv(program, gl::INFO_LOG_LENGTH, &mut max_length);
-    }
-
-    // Read the info log.
-    let mut actual_length: GLint = 0;
-    let mut buf: Vec<u8> = Vec::with_capacity(max_length as usize);
-    unsafe {
-        gl::GetProgramInfoLog(program, max_length, &mut actual_length, buf.as_mut_ptr() as *mut _);
-    }
-
-    // Build a string.
-    unsafe {
-        buf.set_len(actual_length as usize);
-    }
-
-    String::from_utf8_lossy(&buf).to_string()
-}
-
-fn get_shader_info_log(shader: GLuint) -> String {
-    // Get expected log length.
-    let mut max_length: GLint = 0;
-    unsafe {
-        gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut max_length);
-    }
-
-    // Read the info log.
-    let mut actual_length: GLint = 0;
-    let mut buf: Vec<u8> = Vec::with_capacity(max_length as usize);
-    unsafe {
-        gl::GetShaderInfoLog(shader, max_length, &mut actual_length, buf.as_mut_ptr() as *mut _);
-    }
-
-    // Build a string.
-    unsafe {
-        buf.set_len(actual_length as usize);
-    }
-
-    String::from_utf8_lossy(&buf).to_string()
-}
-
 #[derive(Debug)]
 pub enum ShaderError {
-    /// Error compiling shader.
-    Compile(String),
-
-    /// Error linking shader.
-    Link(String),
-
     /// Error getting uniform location.
     Uniform(&'static CStr),
 }
@@ -173,8 +111,6 @@ impl std::error::Error for ShaderError {}
 impl fmt::Display for ShaderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Compile(reason) => write!(f, "Failed compiling shader: {}", reason),
-            Self::Link(reason) => write!(f, "Failed linking shader: {}", reason),
             Self::Uniform(name) => write!(f, "Failed to get uniform location of {:?}", name),
         }
     }
