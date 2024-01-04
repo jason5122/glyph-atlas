@@ -2,21 +2,14 @@
 
 use std::collections::HashMap;
 use std::error::Error;
-use std::sync::atomic::Ordering;
 
 use ahash::RandomState;
 use log::error;
-use winit::event::{Event as WinitEvent, Modifiers, StartCause, WindowEvent};
-use winit::event_loop::{
-    ControlFlow, DeviceEvents, EventLoop, EventLoopProxy, EventLoopWindowTarget,
-};
+use winit::event::{Event as WinitEvent, StartCause, WindowEvent};
+use winit::event_loop::{ControlFlow, DeviceEvents, EventLoop, EventLoopWindowTarget};
 use winit::platform::run_return::EventLoopExtRunReturn;
 use winit::window::WindowId;
 
-use crossfont::{self, Size};
-
-use crate::display::window::Window;
-use crate::display::{Display, SizeInfo};
 use crate::window_context::WindowContext;
 
 /// Alacritty events.
@@ -48,15 +41,6 @@ pub enum EventType {
     CloseWindow,
     RedrawEditor,
     Frame,
-}
-
-pub struct ActionContext<'a> {
-    pub modifiers: &'a mut Modifiers,
-    pub display: &'a mut Display,
-    pub event_proxy: &'a EventLoopProxy<Event>,
-    pub font_size: &'a mut Size,
-    pub dirty: &'a mut bool,
-    pub occluded: &'a mut bool,
 }
 
 /// The event processor.
@@ -108,8 +92,6 @@ impl Processor {
     ///
     /// The result is exit code generate from the loop.
     pub fn run(&mut self, mut event_loop: EventLoop<Event>) -> Result<(), Box<dyn Error>> {
-        let proxy = event_loop.create_proxy();
-
         // Disable all device events, since we don't care about them.
         event_loop.listen_device_events(DeviceEvents::Never);
 
@@ -151,7 +133,7 @@ impl Processor {
                 WinitEvent::RedrawEventsCleared => {
                     // Dispatch event to all windows.
                     for window_context in self.windows.values_mut() {
-                        window_context.handle_event(&proxy, WinitEvent::RedrawEventsCleared);
+                        window_context.handle_event(WinitEvent::RedrawEventsCleared);
                     }
 
                     *control_flow = ControlFlow::Wait;
@@ -172,7 +154,7 @@ impl Processor {
                 // Process events affecting all windows.
                 WinitEvent::UserEvent(event @ Event { window_id: None, .. }) => {
                     for window_context in self.windows.values_mut() {
-                        window_context.handle_event(&proxy, event.clone().into());
+                        window_context.handle_event(event.clone().into());
                     }
                 },
                 // Process window-specific events.
@@ -180,7 +162,7 @@ impl Processor {
                 | WinitEvent::UserEvent(Event { window_id: Some(window_id), .. })
                 | WinitEvent::RedrawRequested(window_id) => {
                     if let Some(window_context) = self.windows.get_mut(&window_id) {
-                        window_context.handle_event(&proxy, event);
+                        window_context.handle_event(event);
                     }
                 },
                 _ => (),

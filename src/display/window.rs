@@ -11,13 +11,6 @@ use winit::dpi::PhysicalSize;
 use winit::event_loop::EventLoopWindowTarget;
 use winit::window::{Window as WinitWindow, WindowBuilder, WindowId};
 
-#[cfg(target_os = "macos")]
-use {
-    cocoa::base::id,
-    objc::runtime::Object,
-    objc::{msg_send, sel, sel_impl},
-};
-
 /// Window errors.
 #[derive(Debug)]
 pub enum Error {
@@ -121,9 +114,5 @@ impl Window {
 
     pub fn id(&self) -> WindowId {
         self.window.id()
-    }
-
-    pub fn set_minimized(&self, minimized: bool) {
-        self.window.set_minimized(minimized);
     }
 }

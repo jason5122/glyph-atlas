@@ -4,28 +4,23 @@ use std::error::Error;
 use std::mem;
 use std::sync::atomic::Ordering;
 
-use crossfont::Size;
 use glutin::config::GetGlConfig;
 use glutin::context::NotCurrentContext;
 use glutin::display::GetGlDisplay;
 use raw_window_handle::HasRawDisplayHandle;
-use winit::event::{Event as WinitEvent, Modifiers};
-use winit::event_loop::{EventLoopProxy, EventLoopWindowTarget};
+use winit::event::Event as WinitEvent;
+use winit::event_loop::EventLoopWindowTarget;
 use winit::window::WindowId;
 
 use crate::display::window::Window;
 use crate::display::Display;
-use crate::event::{ActionContext, Event};
+use crate::event::Event;
 use crate::renderer;
-
-use crossfont::Size as FontSize;
 
 /// Event context for one individual Alacritty window.
 pub struct WindowContext {
     pub display: Display,
     event_queue: Vec<WinitEvent<'static, Event>>,
-    modifiers: Modifiers,
-    font_size: Size,
     dirty: bool,
     occluded: bool,
 }
@@ -83,25 +78,17 @@ impl WindowContext {
         // The display manages a window and can draw the terminal.
         let display = Display::new(window, context)?;
 
-        let font_size = FontSize::new(16.);
-
         // Create context for the Alacritty window.
         Ok(WindowContext {
-            font_size,
             display,
             event_queue: Default::default(),
-            modifiers: Default::default(),
             dirty: true,
             occluded: Default::default(),
         })
     }
 
     /// Process events for this terminal window.
-    pub fn handle_event(
-        &mut self,
-        event_proxy: &EventLoopProxy<Event>,
-        event: WinitEvent<'_, Event>,
-    ) {
+    pub fn handle_event(&mut self, event: WinitEvent<'_, Event>) {
         match event {
             // Skip further event handling with no staged updates.
             WinitEvent::RedrawEventsCleared if self.event_queue.is_empty() && !self.dirty => {
@@ -116,15 +103,6 @@ impl WindowContext {
                 return;
             },
         }
-
-        let context = ActionContext {
-            modifiers: &mut self.modifiers,
-            font_size: &mut self.font_size,
-            display: &mut self.display,
-            dirty: &mut self.dirty,
-            occluded: &mut self.occluded,
-            event_proxy,
-        };
 
         // Process DisplayUpdate events.
         if self.display.pending_update.dirty {
