@@ -12,7 +12,7 @@ use once_cell::sync::OnceCell;
 use crate::display::content::RenderableCell;
 use crate::display::Rgb;
 use crate::display::SizeInfo;
-use crate::editor::buffer::Point;
+use crate::point::Point;
 use crate::gl;
 use crate::renderer::rects::{RectRenderer, RenderRect};
 use crate::renderer::shader::ShaderError;

@@ -1,5 +1,5 @@
 use crate::display::{Rgb, SizeInfo};
-use crate::editor::buffer::Point;
+use crate::point::Point;
 use crate::renderer::rects::RenderRect;
 
 /// Cell ready for rendering.

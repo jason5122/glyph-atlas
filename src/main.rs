@@ -3,8 +3,8 @@ use std::error::Error;
 use winit::event_loop::EventLoopBuilder;
 
 mod display;
-mod editor;
 mod event;
+mod point;
 mod renderer;
 mod window_context;
 

@@ -15,7 +15,6 @@ use winit::window::WindowId;
 
 use crate::display::window::Window;
 use crate::display::Display;
-use crate::editor::Editor;
 use crate::event::{ActionContext, Event};
 use crate::renderer;
 
@@ -25,7 +24,6 @@ use crossfont::Size as FontSize;
 pub struct WindowContext {
     pub display: Display,
     event_queue: Vec<WinitEvent<'static, Event>>,
-    editor: Editor,
     modifiers: Modifiers,
     font_size: Size,
     dirty: bool,
@@ -90,7 +88,6 @@ impl WindowContext {
         // Create context for the Alacritty window.
         Ok(WindowContext {
             font_size,
-            editor: Default::default(),
             display,
             event_queue: Default::default(),
             modifiers: Default::default(),
@@ -126,7 +123,6 @@ impl WindowContext {
             display: &mut self.display,
             dirty: &mut self.dirty,
             occluded: &mut self.occluded,
-            editor: &mut self.editor,
             event_proxy,
         };
 
@@ -148,7 +144,7 @@ impl WindowContext {
             self.dirty = false;
 
             // Redraw the window.
-            self.display.draw(&self.editor);
+            self.display.draw();
         }
     }
 

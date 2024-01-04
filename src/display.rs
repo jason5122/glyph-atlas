@@ -18,8 +18,7 @@ use crossfont::{self, Rasterize, Rasterizer};
 use crate::display::content::{RenderableCell, RenderableCursor};
 use crate::display::meter::Meter;
 use crate::display::window::Window;
-use crate::editor::buffer::Point;
-use crate::editor::Editor;
+use crate::point::Point;
 use crate::renderer::{self, GlyphCache, Renderer};
 
 pub mod content;
@@ -221,11 +220,6 @@ impl DisplayUpdate {
     pub fn dimensions(&self) -> Option<PhysicalSize<u32>> {
         self.dimensions
     }
-
-    pub fn set_dimensions(&mut self, dimensions: PhysicalSize<u32>) {
-        self.dimensions = Some(dimensions);
-        self.dirty = true;
-    }
 }
 
 /// The display wraps a window, font rasterizer, and GPU renderer.
@@ -422,7 +416,7 @@ impl Display {
         self.renderer.resize(&self.size_info);
     }
 
-    pub fn draw(&mut self, editor: &Editor) {
+    pub fn draw(&mut self) {
         let size_info = self.size_info;
 
         // Make sure this window's OpenGL context is active.

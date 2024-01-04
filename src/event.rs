@@ -17,7 +17,6 @@ use crossfont::{self, Size};
 
 use crate::display::window::Window;
 use crate::display::{Display, SizeInfo};
-use crate::editor::Editor;
 use crate::window_context::WindowContext;
 
 /// Alacritty events.
@@ -52,7 +51,6 @@ pub enum EventType {
 }
 
 pub struct ActionContext<'a> {
-    pub editor: &'a mut Editor,
     pub modifiers: &'a mut Modifiers,
     pub display: &'a mut Display,
     pub event_proxy: &'a EventLoopProxy<Event>,
