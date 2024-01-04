@@ -1,5 +1,4 @@
 use crate::display::{Rgb, SizeInfo};
-use crate::point::Point;
 use crate::renderer::rects::RenderRect;
 
 /// Cell ready for rendering.
@@ -32,5 +31,17 @@ impl RenderableCursor {
         let thickness = (thickness * width).round().max(1.);
 
         RenderRect::new(x, y, thickness, height, self.color, 1.).into()
+    }
+}
+
+#[derive(Default, Eq, PartialEq, Copy, Clone)]
+pub struct Point {
+    pub line: usize,
+    pub column: usize,
+}
+
+impl Point {
+    pub fn new(line: usize, column: usize) -> Point {
+        Point { line, column }
     }
 }

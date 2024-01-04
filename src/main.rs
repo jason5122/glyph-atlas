@@ -4,7 +4,6 @@ use winit::event_loop::EventLoopBuilder;
 
 mod display;
 mod event;
-mod point;
 mod renderer;
 
 mod gl {

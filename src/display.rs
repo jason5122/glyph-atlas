@@ -13,9 +13,8 @@ use log::{debug, info};
 
 use crossfont::{self, Rasterize, Rasterizer};
 
-use crate::display::content::{RenderableCell, RenderableCursor};
+use crate::display::content::{Point, RenderableCell, RenderableCursor};
 use crate::display::window::Window;
-use crate::point::Point;
 use crate::renderer::{self, GlyphCache, Renderer};
 
 pub mod content;
