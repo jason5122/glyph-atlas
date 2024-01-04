@@ -10,8 +10,7 @@ use winit::window::WindowId;
 use glutin::context::NotCurrentContext;
 use raw_window_handle::HasRawDisplayHandle;
 
-use crate::display::window::Window;
-use crate::display::Display;
+use crate::display::{Display, Window};
 use crate::renderer;
 
 /// Alacritty events.
