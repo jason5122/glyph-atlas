@@ -1,5 +1,4 @@
 use std::ffi::CStr;
-use std::fmt;
 
 use crate::gl;
 use crate::gl::types::*;
@@ -31,13 +30,10 @@ impl ShaderProgram {
     }
 
     /// Get uniform location by name. Panic if failed.
-    pub fn get_uniform_location(&self, name: &'static CStr) -> Result<GLint, ShaderError> {
+    pub fn get_uniform_location(&self, name: &'static CStr) -> GLint {
         // This call doesn't require `UseProgram`.
         let ret = unsafe { gl::GetUniformLocation(self.id(), name.as_ptr()) };
-        if ret == -1 {
-            return Err(ShaderError::Uniform(name));
-        }
-        Ok(ret)
+        ret
     }
 
     /// Get the shader program id.
@@ -97,21 +93,5 @@ impl Shader {
 impl Drop for Shader {
     fn drop(&mut self) {
         unsafe { gl::DeleteShader(self.0) }
-    }
-}
-
-#[derive(Debug)]
-pub enum ShaderError {
-    /// Error getting uniform location.
-    Uniform(&'static CStr),
-}
-
-impl std::error::Error for ShaderError {}
-
-impl fmt::Display for ShaderError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Uniform(name) => write!(f, "Failed to get uniform location of {:?}", name),
-        }
     }
 }

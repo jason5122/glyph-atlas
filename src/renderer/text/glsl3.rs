@@ -8,8 +8,8 @@ use crate::display::content::RenderableCell;
 use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
+use crate::renderer::cstr;
 use crate::renderer::shader::ShaderProgram;
-use crate::renderer::{cstr, Error};
 
 use super::atlas::{Atlas, ATLAS_SIZE};
 use super::{
@@ -37,10 +37,10 @@ pub struct Glsl3Renderer {
 }
 
 impl Glsl3Renderer {
-    pub fn new() -> Result<Self, Error> {
+    pub fn new() -> Self {
         info!("Using OpenGL 3.3 renderer");
 
-        let program = TextShaderProgram::new()?;
+        let program = TextShaderProgram::new();
         let mut vao: GLuint = 0;
         let mut ebo: GLuint = 0;
         let mut vbo_instance: GLuint = 0;
@@ -130,7 +130,7 @@ impl Glsl3Renderer {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
         }
 
-        Ok(Self {
+        Self {
             program,
             vao,
             ebo,
@@ -139,7 +139,7 @@ impl Glsl3Renderer {
             current_atlas: 0,
             active_tex: 0,
             batch: Batch::new(),
-        })
+        }
     }
 }
 
@@ -420,14 +420,14 @@ pub struct TextShaderProgram {
 }
 
 impl TextShaderProgram {
-    pub fn new() -> Result<TextShaderProgram, Error> {
+    pub fn new() -> TextShaderProgram {
         let program = ShaderProgram::new(None, TEXT_SHADER_V, TEXT_SHADER_F);
-        Ok(Self {
-            u_projection: program.get_uniform_location(cstr!("projection"))?,
-            u_cell_dim: program.get_uniform_location(cstr!("cellDim"))?,
-            u_rendering_pass: program.get_uniform_location(cstr!("renderingPass"))?,
+        Self {
+            u_projection: program.get_uniform_location(cstr!("projection")),
+            u_cell_dim: program.get_uniform_location(cstr!("cellDim")),
+            u_rendering_pass: program.get_uniform_location(cstr!("renderingPass")),
             program,
-        })
+        }
     }
 
     fn set_term_uniforms(&self, props: &SizeInfo) {

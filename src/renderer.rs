@@ -10,7 +10,6 @@ use crate::display::Rgb;
 use crate::display::SizeInfo;
 use crate::gl;
 use crate::renderer::rects::{RectRenderer, RenderRect};
-use crate::renderer::shader::ShaderError;
 
 pub mod platform;
 pub mod rects;
@@ -42,32 +41,21 @@ pub struct Delta<T: Default> {
 }
 
 #[derive(Debug)]
-pub enum Error {
-    /// Shader error.
-    Shader(ShaderError),
-}
+pub enum Error {}
 
 impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
-            Error::Shader(err) => err.source(),
+            _ => todo!(),
         }
     }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::Shader(err) => {
-                write!(f, "There was an error initializing the shaders: {}", err)
-            },
+            _ => todo!(),
         }
-    }
-}
-
-impl From<ShaderError> for Error {
-    fn from(val: ShaderError) -> Self {
-        Error::Shader(val)
     }
 }
 
@@ -89,7 +77,7 @@ impl Renderer {
             });
         }
 
-        let text_renderer = Glsl3Renderer::new()?;
+        let text_renderer = Glsl3Renderer::new();
         let rect_renderer = RectRenderer::new();
 
         Ok(Self { text_renderer, rect_renderer })

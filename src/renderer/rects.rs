@@ -206,16 +206,16 @@ pub struct RectShaderProgram {
     program: ShaderProgram,
 
     /// Cell width.
-    u_cell_width: Option<GLint>,
+    u_cell_width: GLint,
 
     /// Cell height.
-    u_cell_height: Option<GLint>,
+    u_cell_height: GLint,
 
     /// Terminal padding.
-    u_padding_x: Option<GLint>,
+    u_padding_x: GLint,
 
     /// A padding from the bottom of the screen to viewport.
-    u_padding_y: Option<GLint>,
+    u_padding_y: GLint,
 }
 
 impl RectShaderProgram {
@@ -223,10 +223,10 @@ impl RectShaderProgram {
         let program = ShaderProgram::new(None, RECT_SHADER_V, RECT_SHADER_F);
 
         Self {
-            u_cell_width: program.get_uniform_location(cstr!("cellWidth")).ok(),
-            u_cell_height: program.get_uniform_location(cstr!("cellHeight")).ok(),
-            u_padding_x: program.get_uniform_location(cstr!("paddingX")).ok(),
-            u_padding_y: program.get_uniform_location(cstr!("paddingY")).ok(),
+            u_cell_width: program.get_uniform_location(cstr!("cellWidth")),
+            u_cell_height: program.get_uniform_location(cstr!("cellHeight")),
+            u_padding_x: program.get_uniform_location(cstr!("paddingX")),
+            u_padding_y: program.get_uniform_location(cstr!("paddingY")),
             program,
         }
     }
@@ -241,18 +241,10 @@ impl RectShaderProgram {
             - (viewport_height / size_info.cell_height()).floor() * size_info.cell_height();
 
         unsafe {
-            if let Some(u_cell_width) = self.u_cell_width {
-                gl::Uniform1f(u_cell_width, size_info.cell_width());
-            }
-            if let Some(u_cell_height) = self.u_cell_height {
-                gl::Uniform1f(u_cell_height, size_info.cell_height());
-            }
-            if let Some(u_padding_y) = self.u_padding_y {
-                gl::Uniform1f(u_padding_y, padding_y);
-            }
-            if let Some(u_padding_x) = self.u_padding_x {
-                gl::Uniform1f(u_padding_x, size_info.padding_x());
-            }
+            gl::Uniform1f(self.u_cell_width, size_info.cell_width());
+            gl::Uniform1f(self.u_cell_height, size_info.cell_height());
+            gl::Uniform1f(self.u_padding_y, padding_y);
+            gl::Uniform1f(self.u_padding_x, size_info.padding_x());
         }
     }
 }
