@@ -8,10 +8,8 @@ use crate::display::content::RenderableCell;
 use crate::display::Rgb;
 use crate::display::SizeInfo;
 use crate::gl;
-use crate::renderer::rects::{RectRenderer, RenderRect};
 
 pub mod platform;
-pub mod rects;
 mod shader;
 mod text;
 
@@ -42,7 +40,6 @@ pub struct Delta<T: Default> {
 #[derive(Debug)]
 pub struct Renderer {
     text_renderer: Glsl3Renderer,
-    rect_renderer: RectRenderer,
 }
 
 impl Renderer {
@@ -58,9 +55,8 @@ impl Renderer {
         }
 
         let text_renderer = Glsl3Renderer::new();
-        let rect_renderer = RectRenderer::new();
 
-        Self { text_renderer, rect_renderer }
+        Self { text_renderer }
     }
 
     pub fn draw_cells<I: Iterator<Item = RenderableCell>>(
@@ -77,31 +73,6 @@ impl Renderer {
         F: FnOnce(LoaderApi<'_>) -> T,
     {
         self.text_renderer.with_loader(func)
-    }
-
-    /// Draw all rectangles simultaneously to prevent excessive program swaps.
-    pub fn draw_rects(&mut self, size_info: &SizeInfo, rects: Vec<RenderRect>) {
-        if rects.is_empty() {
-            return;
-        }
-
-        // Prepare rect rendering state.
-        unsafe {
-            // Remove padding from viewport.
-            gl::Viewport(0, 0, size_info.width as i32, size_info.height as i32);
-            gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::SRC_ALPHA, gl::ONE);
-        }
-
-        self.rect_renderer.draw(size_info, rects);
-
-        // Activate regular state again.
-        unsafe {
-            // Reset blending strategy.
-            gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
-
-            // Restore viewport with padding.
-            self.set_viewport(size_info);
-        }
     }
 
     /// Fill the window with `color` and `alpha`.

@@ -9,7 +9,7 @@ use log::{debug, info};
 
 use crossfont::{self, Rasterize, Rasterizer};
 
-use crate::display::content::{Point, RenderableCell, RenderableCursor};
+use crate::display::content::RenderableCell;
 use crate::display::window::Window;
 use crate::renderer::{self, GlyphCache, Renderer};
 
@@ -27,11 +27,6 @@ impl Rgb {
     #[inline]
     pub const fn new(r: u8, g: u8, b: u8) -> Self {
         Self { r, g, b }
-    }
-
-    #[inline]
-    pub fn as_tuple(self) -> (u8, u8, u8) {
-        (self.r, self.g, self.b)
     }
 }
 
@@ -218,22 +213,13 @@ impl Display {
                         bg_alpha: 1.0,
                         fg,
                         bg,
-                        font_key: 1,
+                        font_key: 0,
                     };
                     cells.push(cell);
                 }
             }
 
-            let cursor_point = Point::new(10, 3);
-            let cursor =
-                RenderableCursor { point: cursor_point, color: Rgb::new(0x5f, 0xb4, 0xb4) };
-
             self.renderer.draw_cells(&size_info, glyph_cache, cells.into_iter());
-
-            // Draw cursor.
-            let mut rects = Vec::new();
-            rects.push(cursor.rects(&size_info, 0.2));
-            self.renderer.draw_rects(&size_info, rects);
         }
 
         // Clearing debug highlights from the previous frame requires full redraw.
