@@ -194,6 +194,7 @@ impl Display {
                 "assert_eq!(iterator.next(), Some(&2));",
                 "assert_eq!(iterator.next(), Some(&4));",
                 "assert_eq!(iterator.next(), None);",
+                "huh 🤨 🤨 🤨",
             ];
             // Red
             // let fg = Rgb::new(0xfc, 0xfd, 0xfd);

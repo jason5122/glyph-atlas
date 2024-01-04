@@ -13,33 +13,7 @@ use raw_window_handle::HasRawDisplayHandle;
 use crate::display::{Display, Window};
 use crate::renderer;
 
-/// Alacritty events.
-#[derive(Clone)]
-pub struct Event {
-    /// Limit event to a specific window.
-    window_id: Option<WindowId>,
-
-    /// Event payload.
-    payload: EventType,
-}
-
-impl Event {
-    pub fn new<I: Into<Option<WindowId>>>(payload: EventType, window_id: I) -> Self {
-        Self { window_id: window_id.into(), payload }
-    }
-}
-
-impl From<Event> for WinitEvent<'_, Event> {
-    fn from(event: Event) -> Self {
-        WinitEvent::UserEvent(event)
-    }
-}
-
-/// Alacritty events.
-#[derive(Clone)]
-pub enum EventType {
-    CloseWindow,
-}
+pub struct Event {}
 
 /// The event processor.
 ///
@@ -98,22 +72,6 @@ impl Processor {
                     }
 
                     *control_flow = ControlFlow::Wait;
-                },
-                // Check for shutdown.
-                WinitEvent::UserEvent(Event {
-                    window_id: Some(window_id),
-                    payload: EventType::CloseWindow,
-                }) => {
-                    // Remove the closed window.
-                    match self.windows.remove(&window_id) {
-                        Some(window_context) => window_context,
-                        None => return,
-                    };
-
-                    // Shutdown if no more terminals are open.
-                    if self.windows.is_empty() {
-                        *control_flow = ControlFlow::Exit;
-                    }
                 },
                 _ => (),
             }

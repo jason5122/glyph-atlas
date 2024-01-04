@@ -23,15 +23,11 @@ macro_rules! cstr {
 }
 pub(crate) use cstr;
 
-/// Whether the OpenGL functions have been loaded.
 pub static GL_FUNS_LOADED: AtomicBool = AtomicBool::new(false);
 
-/// A delta for a point in a 2 dimensional plane.
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
 pub struct Delta<T: Default> {
-    /// Horizontal change.
     pub x: T,
-    /// Vertical change.
     pub y: T,
 }
 
