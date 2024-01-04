@@ -25,13 +25,12 @@ bitflags! {
     }
 }
 
-/// Rendering passes, for both GLES2 and GLSL3 renderer.
 #[repr(u8)]
 enum RenderingPass {
     /// Rendering pass used to render background color in text shaders.
     Background = 0,
 
-    /// The first pass to render text with both GLES2 and GLSL3 renderers.
+    /// The first pass to render text.
     SubpixelPass1 = 1,
 }
 
@@ -84,27 +83,17 @@ pub trait TextRenderer<'a> {
 }
 
 pub trait TextRenderBatch {
-    /// Check if `Batch` is empty.
     fn is_empty(&self) -> bool;
-
-    /// Check whether the `Batch` is full.
     fn full(&self) -> bool;
-
-    /// Get texture `Batch` is using.
     fn tex(&self) -> GLuint;
-
-    /// Add item to the batch.
     fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, size_info: &SizeInfo);
 }
 
 pub trait TextRenderApi<T: TextRenderBatch>: LoadGlyph {
-    /// Get `Batch` the api is using.
     fn batch(&mut self) -> &mut T;
 
-    /// Render the underlying data.
     fn render_batch(&mut self);
 
-    /// Add item to the rendering queue.
     #[inline]
     fn add_render_item(&mut self, cell: &RenderableCell, glyph: &Glyph, size_info: &SizeInfo) {
         // Flush batch if tex changing.
@@ -114,20 +103,17 @@ pub trait TextRenderApi<T: TextRenderBatch>: LoadGlyph {
 
         self.batch().add_item(cell, glyph, size_info);
 
-        // Render batch and clear if it's full.
         if self.batch().full() {
             self.render_batch();
         }
     }
 
-    /// Draw cell.
     fn draw_cell(
         &mut self,
         cell: RenderableCell,
         glyph_cache: &mut GlyphCache,
         size_info: &SizeInfo,
     ) {
-        // Get font key for cell.
         let font_key = match cell.font_key {
             0 => glyph_cache.font_key,
             1 => glyph_cache.bold_key,
@@ -139,7 +125,6 @@ pub trait TextRenderApi<T: TextRenderBatch>: LoadGlyph {
         let glyph_key =
             GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
-        // Add cell to batch.
         let glyph = glyph_cache.get(glyph_key, self, true);
         self.add_render_item(&cell, &glyph, size_info);
     }
@@ -147,8 +132,6 @@ pub trait TextRenderApi<T: TextRenderBatch>: LoadGlyph {
 
 pub trait TextShader {
     fn id(&self) -> GLuint;
-
-    /// Id of the projection uniform.
     fn projection_uniform(&self) -> GLint;
 }
 

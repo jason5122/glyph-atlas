@@ -41,28 +41,13 @@ pub struct Glyph {
 /// Currently only keyed by `char`, and thus not possible to hold different
 /// representations of the same code point.
 pub struct GlyphCache {
-    /// Cache of buffered glyphs.
     cache: HashMap<GlyphKey, Glyph, RandomState>,
-
-    /// Rasterizer for loading new glyphs.
     rasterizer: Rasterizer,
-
-    /// Regular font.
     pub font_key: FontKey,
-
-    /// Bold font.
     pub bold_key: FontKey,
-
-    /// Italic font.
     pub italic_key: FontKey,
-
-    /// Bold italic font.
     pub bold_italic_key: FontKey,
-
-    /// Font size.
     pub font_size: crossfont::Size,
-
-    /// Font metrics.
     metrics: Metrics,
 }
 
