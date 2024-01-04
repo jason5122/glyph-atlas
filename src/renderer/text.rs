@@ -33,23 +33,12 @@ enum RenderingPass {
 }
 
 pub trait TextRenderer<'a> {
-    type Shader: TextShader;
     type RenderBatch: TextRenderBatch;
     type RenderApi: TextRenderApi<Self::RenderBatch>;
-
-    /// Draw cells.
-    fn draw_cells<'b: 'a, I: Iterator<Item = RenderableCell>>(
-        &'b mut self,
-        size_info: &'b SizeInfo,
-        glyph_cache: &'a mut GlyphCache,
-        cells: I,
-    );
 
     fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
     where
         F: FnOnce(Self::RenderApi) -> T;
-
-    fn program(&self) -> &Self::Shader;
 }
 
 pub trait TextRenderBatch {

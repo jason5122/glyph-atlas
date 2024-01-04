@@ -143,6 +143,19 @@ impl Glsl3Renderer {
         }
     }
 
+    pub fn draw_cells<I: Iterator<Item = RenderableCell>>(
+        &mut self,
+        size_info: &SizeInfo,
+        glyph_cache: &mut GlyphCache,
+        cells: I,
+    ) {
+        self.with_api(size_info, |mut api| {
+            for cell in cells {
+                api.draw_cell(cell, glyph_cache, size_info);
+            }
+        })
+    }
+
     pub fn resize(&self, size: &SizeInfo) {
         unsafe {
             let program = self.program();
@@ -167,25 +180,15 @@ impl Glsl3Renderer {
             current_atlas: &mut self.current_atlas,
         }
     }
+
+    pub fn program(&self) -> &dyn TextShader {
+        &self.program
+    }
 }
 
 impl<'a> TextRenderer<'a> for Glsl3Renderer {
     type RenderApi = RenderApi<'a>;
     type RenderBatch = Batch;
-    type Shader = TextShaderProgram;
-
-    fn draw_cells<'b: 'a, I: Iterator<Item = RenderableCell>>(
-        &'b mut self,
-        size_info: &'b SizeInfo,
-        glyph_cache: &'a mut GlyphCache,
-        cells: I,
-    ) {
-        self.with_api(size_info, |mut api| {
-            for cell in cells {
-                api.draw_cell(cell, glyph_cache, size_info);
-            }
-        })
-    }
 
     fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
     where
@@ -218,10 +221,6 @@ impl<'a> TextRenderer<'a> for Glsl3Renderer {
         }
 
         res
-    }
-
-    fn program(&self) -> &Self::Shader {
-        &self.program
     }
 }
 

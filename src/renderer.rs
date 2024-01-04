@@ -13,7 +13,7 @@ mod text;
 
 pub use text::{GlyphCache, LoaderApi};
 
-use text::{Glsl3Renderer, TextRenderer};
+use text::Glsl3Renderer;
 
 macro_rules! cstr {
     ($s:literal) => {
