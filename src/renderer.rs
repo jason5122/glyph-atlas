@@ -64,7 +64,7 @@ impl Renderer {
 
     pub fn with_loader<F, T>(&mut self, func: F) -> T
     where
-        F: FnOnce(LoaderApi<'_>) -> T,
+        F: FnOnce(LoaderApi) -> T,
     {
         self.text_renderer.with_loader(func)
     }
