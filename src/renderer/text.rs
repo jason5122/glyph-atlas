@@ -1,7 +1,6 @@
 use bitflags::bitflags;
 use crossfont::RasterizedGlyph;
 
-use crate::display::SizeInfo;
 use crate::gl::types::*;
 
 mod atlas;
@@ -30,12 +29,6 @@ enum RenderingPass {
 
     /// The first pass to render text.
     SubpixelPass1 = 1,
-}
-
-pub trait TextRenderer<'a> {
-    fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
-    where
-        F: FnOnce(RenderApi) -> T;
 }
 
 pub trait TextShader {

@@ -11,9 +11,7 @@ use crate::renderer::cstr;
 use crate::renderer::shader::ShaderProgram;
 
 use super::atlas::{Atlas, ATLAS_SIZE};
-use super::{
-    Glyph, LoadGlyph, LoaderApi, RenderingGlyphFlags, RenderingPass, TextRenderer, TextShader,
-};
+use super::{Glyph, LoadGlyph, LoaderApi, RenderingGlyphFlags, RenderingPass, TextShader};
 
 use super::glyph_cache::GlyphCache;
 
@@ -183,10 +181,8 @@ impl Glsl3Renderer {
     pub fn program(&self) -> &dyn TextShader {
         &self.program
     }
-}
 
-impl<'a> TextRenderer<'a> for Glsl3Renderer {
-    fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
+    pub fn with_api<F, T>(&mut self, size_info: &SizeInfo, func: F) -> T
     where
         F: FnOnce(RenderApi) -> T,
     {
