@@ -1,4 +1,3 @@
-use std::fmt::{self, Display, Formatter};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
@@ -7,49 +6,6 @@ use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use winit::dpi::PhysicalSize;
 use winit::event_loop::EventLoopWindowTarget;
 use winit::window::{Window as WinitWindow, WindowBuilder, WindowId};
-
-/// Window errors.
-#[derive(Debug)]
-pub enum Error {
-    /// Error creating the window.
-    WindowCreation(winit::error::OsError),
-
-    /// Error dealing with fonts.
-    Font(crossfont::Error),
-}
-
-/// Result of fallible operations concerning a Window.
-type Result<T> = std::result::Result<T, Error>;
-
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Error::WindowCreation(err) => err.source(),
-            Error::Font(err) => err.source(),
-        }
-    }
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::WindowCreation(err) => write!(f, "Error creating GL context; {}", err),
-            Error::Font(err) => err.fmt(f),
-        }
-    }
-}
-
-impl From<winit::error::OsError> for Error {
-    fn from(val: winit::error::OsError) -> Self {
-        Error::WindowCreation(val)
-    }
-}
-
-impl From<crossfont::Error> for Error {
-    fn from(val: crossfont::Error) -> Self {
-        Error::Font(val)
-    }
-}
 
 /// A window which can be used for displaying the terminal.
 ///
@@ -68,7 +24,7 @@ impl Window {
     /// Create a new window.
     ///
     /// This creates a window and fully initializes a window.
-    pub fn new<E>(event_loop: &EventLoopWindowTarget<E>) -> Result<Window> {
+    pub fn new<E>(event_loop: &EventLoopWindowTarget<E>) -> Window {
         let window_builder = WindowBuilder::new();
 
         let window = window_builder
@@ -78,14 +34,15 @@ impl Window {
             .with_transparent(false)
             .with_maximized(true)
             .with_fullscreen(None)
-            .build(event_loop)?;
+            .build(event_loop)
+            .unwrap();
 
         // Set initial transparency hint.
         window.set_transparent(false);
 
         let scale_factor = window.scale_factor();
 
-        Ok(Self { window, has_frame: Arc::new(AtomicBool::new(true)), scale_factor })
+        Self { window, has_frame: Arc::new(AtomicBool::new(true)), scale_factor }
     }
 
     #[inline]

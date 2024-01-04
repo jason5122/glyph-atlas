@@ -1,7 +1,3 @@
-//! The display subsystem including window management, font rasterization, and
-//! GPU drawing.
-
-use std::fmt::{self, Formatter};
 use std::mem::ManuallyDrop;
 use std::ops::Deref;
 
@@ -36,56 +32,6 @@ impl Rgb {
     #[inline]
     pub fn as_tuple(self) -> (u8, u8, u8) {
         (self.r, self.g, self.b)
-    }
-}
-
-#[derive(Debug)]
-pub enum Error {
-    /// Error with window management.
-    Window(window::Error),
-
-    /// Error dealing with fonts.
-    Font(crossfont::Error),
-
-    /// Error during context operations.
-    Context(glutin::error::Error),
-}
-
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            Error::Window(err) => err.source(),
-            Error::Font(err) => err.source(),
-            Error::Context(err) => err.source(),
-        }
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::Window(err) => err.fmt(f),
-            Error::Font(err) => err.fmt(f),
-            Error::Context(err) => err.fmt(f),
-        }
-    }
-}
-
-impl From<window::Error> for Error {
-    fn from(val: window::Error) -> Self {
-        Error::Window(val)
-    }
-}
-
-impl From<crossfont::Error> for Error {
-    fn from(val: crossfont::Error) -> Self {
-        Error::Font(val)
-    }
-}
-
-impl From<glutin::error::Error> for Error {
-    fn from(val: glutin::error::Error) -> Self {
-        Error::Context(val)
     }
 }
 
@@ -192,7 +138,7 @@ pub struct Display {
 }
 
 impl Display {
-    pub fn new(window: Window, gl_context: NotCurrentContext) -> Result<Display, Error> {
+    pub fn new(window: Window, gl_context: NotCurrentContext) -> Display {
         let scale_factor = window.scale_factor as f32;
         let rasterizer = Rasterizer::new(scale_factor).unwrap();
 
@@ -251,14 +197,14 @@ impl Display {
             info!("Failed to disable vsync: {}", err);
         }
 
-        Ok(Self {
+        Self {
             window,
             context,
             surface: ManuallyDrop::new(surface),
             renderer: ManuallyDrop::new(renderer),
             glyph_cache,
             size_info,
-        })
+        }
     }
 
     pub fn make_current(&self) {
