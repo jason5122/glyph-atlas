@@ -10,7 +10,7 @@ use glutin::display::{Display, DisplayApiPreference, GetGlDisplay};
 use glutin::error::Result as GlutinResult;
 use glutin::prelude::*;
 use glutin::surface::{Surface, SurfaceAttributesBuilder, WindowSurface};
-use log::{debug, LevelFilter};
+use log::LevelFilter;
 
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 use winit::dpi::PhysicalSize;
@@ -59,24 +59,6 @@ pub fn pick_gl_config(
         };
 
         if let Some(gl_config) = gl_config {
-            debug!(
-                r#"Picked GL Config:
-  buffer_type: {:?}
-  alpha_size: {}
-  num_samples: {}
-  hardware_accelerated: {:?}
-  supports_transparency: {:?}
-  config_api: {:?}
-  srgb_capable: {}"#,
-                gl_config.color_buffer_type(),
-                gl_config.alpha_size(),
-                gl_config.num_samples(),
-                gl_config.hardware_accelerated(),
-                gl_config.supports_transparency(),
-                gl_config.api(),
-                gl_config.srgb_capable(),
-            );
-
             return Ok(gl_config);
         }
     }

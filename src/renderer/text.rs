@@ -128,7 +128,13 @@ pub trait TextRenderApi<T: TextRenderBatch>: LoadGlyph {
         size_info: &SizeInfo,
     ) {
         // Get font key for cell.
-        let font_key = glyph_cache.font_key;
+        let font_key = match cell.font_key {
+            0 => glyph_cache.font_key,
+            1 => glyph_cache.bold_key,
+            2 => glyph_cache.italic_key,
+            3 => glyph_cache.bold_italic_key,
+            _ => glyph_cache.font_key,
+        };
 
         let glyph_key =
             GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };

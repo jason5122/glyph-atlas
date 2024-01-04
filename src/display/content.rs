@@ -10,7 +10,7 @@ pub struct RenderableCell {
     pub fg: Rgb,
     pub bg: Rgb,
     pub bg_alpha: f32,
-    pub underline: Rgb,
+    pub font_key: usize,
 }
 
 /// Cursor storing all information relevant for rendering.

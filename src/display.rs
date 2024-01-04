@@ -218,7 +218,7 @@ impl Display {
                         bg_alpha: 1.0,
                         fg,
                         bg,
-                        underline: Rgb::new(0x33, 0x33, 0x33),
+                        font_key: 1,
                     };
                     cells.push(cell);
                 }
