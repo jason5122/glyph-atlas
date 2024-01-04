@@ -9,7 +9,7 @@ mod glsl3;
 pub mod glyph_cache;
 
 use atlas::Atlas;
-pub use glsl3::Glsl3Renderer;
+pub use glsl3::{Batch, Glsl3Renderer};
 pub use glyph_cache::GlyphCache;
 use glyph_cache::{Glyph, LoadGlyph};
 
@@ -33,23 +33,15 @@ enum RenderingPass {
 }
 
 pub trait TextRenderer<'a> {
-    type RenderBatch: TextRenderBatch;
-    type RenderApi: TextRenderApi<Self::RenderBatch>;
+    type RenderApi: TextRenderApi;
 
     fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
     where
         F: FnOnce(Self::RenderApi) -> T;
 }
 
-pub trait TextRenderBatch {
-    fn is_empty(&self) -> bool;
-    fn full(&self) -> bool;
-    fn tex(&self) -> GLuint;
-    fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, size_info: &SizeInfo);
-}
-
-pub trait TextRenderApi<T: TextRenderBatch>: LoadGlyph {
-    fn batch(&mut self) -> &mut T;
+pub trait TextRenderApi: LoadGlyph {
+    fn batch(&mut self) -> &mut Batch;
 
     fn render_batch(&mut self);
 

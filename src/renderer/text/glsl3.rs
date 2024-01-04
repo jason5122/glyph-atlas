@@ -12,8 +12,8 @@ use crate::renderer::shader::ShaderProgram;
 
 use super::atlas::{Atlas, ATLAS_SIZE};
 use super::{
-    Glyph, LoadGlyph, LoaderApi, RenderingGlyphFlags, RenderingPass, TextRenderApi,
-    TextRenderBatch, TextRenderer, TextShader,
+    Glyph, LoadGlyph, LoaderApi, RenderingGlyphFlags, RenderingPass, TextRenderApi, TextRenderer,
+    TextShader,
 };
 
 use super::glyph_cache::GlyphCache;
@@ -188,7 +188,6 @@ impl Glsl3Renderer {
 
 impl<'a> TextRenderer<'a> for Glsl3Renderer {
     type RenderApi = RenderApi<'a>;
-    type RenderBatch = Batch;
 
     fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
     where
@@ -243,7 +242,7 @@ pub struct RenderApi<'a> {
     program: &'a mut TextShaderProgram,
 }
 
-impl<'a> TextRenderApi<Batch> for RenderApi<'a> {
+impl<'a> TextRenderApi for RenderApi<'a> {
     fn batch(&mut self) -> &mut Batch {
         self.batch
     }
@@ -351,23 +350,74 @@ pub struct Batch {
     instances: Vec<InstanceData>,
 }
 
-impl TextRenderBatch for Batch {
+// impl TextRenderBatch for Batch {
+//     #[inline]
+//     fn tex(&self) -> GLuint {
+//         self.tex
+//     }
+
+//     #[inline]
+//     fn full(&self) -> bool {
+//         self.capacity() == self.len()
+//     }
+
+//     #[inline]
+//     fn is_empty(&self) -> bool {
+//         self.len() == 0
+//     }
+
+//     fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, _: &SizeInfo) {
+//         if self.is_empty() {
+//             self.tex = glyph.tex_id;
+//         }
+
+//         let mut cell_flags = RenderingGlyphFlags::empty();
+//         cell_flags.set(RenderingGlyphFlags::COLORED, glyph.multicolor);
+
+//         self.instances.push(InstanceData {
+//             col: cell.column as u16,
+//             row: cell.line as u16,
+
+//             top: glyph.top,
+//             left: glyph.left,
+//             width: glyph.width,
+//             height: glyph.height,
+
+//             uv_bot: glyph.uv_bot,
+//             uv_left: glyph.uv_left,
+//             uv_width: glyph.uv_width,
+//             uv_height: glyph.uv_height,
+
+//             r: cell.fg.r,
+//             g: cell.fg.g,
+//             b: cell.fg.b,
+//             cell_flags,
+
+//             bg_r: cell.bg.r,
+//             bg_g: cell.bg.g,
+//             bg_b: cell.bg.b,
+//             bg_a: (cell.bg_alpha * 255.0) as u8,
+//         });
+//     }
+// }
+
+impl Batch {
     #[inline]
-    fn tex(&self) -> GLuint {
+    pub fn tex(&self) -> GLuint {
         self.tex
     }
 
     #[inline]
-    fn full(&self) -> bool {
+    pub fn full(&self) -> bool {
         self.capacity() == self.len()
     }
 
     #[inline]
-    fn is_empty(&self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, _: &SizeInfo) {
+    pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, _: &SizeInfo) {
         if self.is_empty() {
             self.tex = glyph.tex_id;
         }
@@ -400,9 +450,7 @@ impl TextRenderBatch for Batch {
             bg_a: (cell.bg_alpha * 255.0) as u8,
         });
     }
-}
 
-impl Batch {
     #[inline]
     pub fn new() -> Self {
         Self { tex: 0, instances: Vec::with_capacity(BATCH_MAX) }
