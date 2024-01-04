@@ -1,19 +1,15 @@
-use std::collections::HashSet;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
+use std::fmt;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::{fmt, ptr};
 
-use ahash::RandomState;
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
-use log::{debug, error, warn, LevelFilter};
-use once_cell::sync::OnceCell;
 
 use crate::display::content::RenderableCell;
 use crate::display::Rgb;
 use crate::display::SizeInfo;
-use crate::point::Point;
 use crate::gl;
+use crate::point::Point;
 use crate::renderer::rects::{RectRenderer, RenderRect};
 use crate::renderer::shader::ShaderError;
 
@@ -100,16 +96,6 @@ impl Renderer {
 
         let text_renderer = Glsl3Renderer::new()?;
         let rect_renderer = RectRenderer::new()?;
-
-        // Enable debug logging for OpenGL as well.
-        if log::max_level() >= LevelFilter::Debug && GlExtensions::contains("GL_KHR_debug") {
-            debug!("Enabled debug logging for OpenGL");
-            unsafe {
-                gl::Enable(gl::DEBUG_OUTPUT);
-                gl::Enable(gl::DEBUG_OUTPUT_SYNCHRONOUS);
-                gl::DebugMessageCallback(Some(gl_debug_log), ptr::null_mut());
-            }
-        }
 
         Ok(Self { text_renderer, rect_renderer })
     }
@@ -211,61 +197,5 @@ impl Renderer {
     pub fn resize(&self, size_info: &SizeInfo) {
         self.set_viewport(size_info);
         self.text_renderer.resize(size_info)
-    }
-}
-
-struct GlExtensions;
-
-impl GlExtensions {
-    /// Check if the given `extension` is supported.
-    ///
-    /// This function will lazyly load OpenGL extensions.
-    fn contains(extension: &str) -> bool {
-        static OPENGL_EXTENSIONS: OnceCell<HashSet<&'static str, RandomState>> = OnceCell::new();
-
-        OPENGL_EXTENSIONS.get_or_init(Self::load_extensions).contains(extension)
-    }
-
-    /// Load available OpenGL extensions.
-    fn load_extensions() -> HashSet<&'static str, RandomState> {
-        unsafe {
-            let extensions = gl::GetString(gl::EXTENSIONS);
-
-            if extensions.is_null() {
-                let mut extensions_number = 0;
-                gl::GetIntegerv(gl::NUM_EXTENSIONS, &mut extensions_number);
-
-                (0..extensions_number as gl::types::GLuint)
-                    .flat_map(|i| {
-                        let extension = CStr::from_ptr(gl::GetStringi(gl::EXTENSIONS, i) as *mut _);
-                        extension.to_str()
-                    })
-                    .collect()
-            } else {
-                match CStr::from_ptr(extensions as *mut _).to_str() {
-                    Ok(ext) => ext.split_whitespace().collect(),
-                    Err(_) => Default::default(),
-                }
-            }
-        }
-    }
-}
-
-extern "system" fn gl_debug_log(
-    _: gl::types::GLenum,
-    kind: gl::types::GLenum,
-    _: gl::types::GLuint,
-    _: gl::types::GLenum,
-    _: gl::types::GLsizei,
-    msg: *const gl::types::GLchar,
-    _: *mut std::os::raw::c_void,
-) {
-    let msg = unsafe { CStr::from_ptr(msg).to_string_lossy() };
-    match kind {
-        gl::DEBUG_TYPE_ERROR | gl::DEBUG_TYPE_UNDEFINED_BEHAVIOR => {
-            error!("[gl_render] {}", msg)
-        },
-        gl::DEBUG_TYPE_DEPRECATED_BEHAVIOR => warn!("[gl_render] {}", msg),
-        _ => debug!("[gl_render] {}", msg),
     }
 }

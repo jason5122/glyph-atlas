@@ -4,8 +4,7 @@ use std::collections::HashMap;
 use std::error::Error;
 
 use ahash::RandomState;
-use log::error;
-use winit::event::{Event as WinitEvent, StartCause, WindowEvent};
+use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, DeviceEvents, EventLoop, EventLoopWindowTarget};
 use winit::platform::run_return::EventLoopExtRunReturn;
 use winit::window::WindowId;
@@ -74,20 +73,6 @@ impl Processor {
         Ok(())
     }
 
-    /// Create a new terminal window.
-    pub fn create_window(
-        &mut self,
-        event_loop: &EventLoopWindowTarget<Event>,
-    ) -> Result<(), Box<dyn Error>> {
-        let window = self.windows.iter().next().as_ref().unwrap().1;
-
-        #[allow(unused_mut)]
-        let mut window_context = window.additional(event_loop)?;
-
-        self.windows.insert(window_context.id(), window_context);
-        Ok(())
-    }
-
     /// Run the event loop.
     ///
     /// The result is exit code generate from the loop.
@@ -96,11 +81,6 @@ impl Processor {
         event_loop.listen_device_events(DeviceEvents::Never);
 
         let exit_code = event_loop.run_return(move |event, event_loop, control_flow| {
-            // Ignore all events we do not care about.
-            if Self::skip_event(&event) {
-                return;
-            }
-
             match event {
                 // The event loop just got initialized. Create a window.
                 WinitEvent::Resumed => {
@@ -112,6 +92,13 @@ impl Processor {
                     }
 
                     println!("Initialization complete");
+
+                    for window_context in self.windows.values_mut() {
+                        // window_context.handle_event(WinitEvent::RedrawEventsCleared);
+                        window_context.display.draw();
+                    }
+
+                    *control_flow = ControlFlow::Wait;
                 },
                 // Check for shutdown.
                 WinitEvent::UserEvent(Event {
@@ -129,42 +116,6 @@ impl Processor {
                         *control_flow = ControlFlow::Exit;
                     }
                 },
-                // Process all pending events.
-                WinitEvent::RedrawEventsCleared => {
-                    // Dispatch event to all windows.
-                    for window_context in self.windows.values_mut() {
-                        window_context.handle_event(WinitEvent::RedrawEventsCleared);
-                    }
-
-                    *control_flow = ControlFlow::Wait;
-                },
-                // Create a new terminal window.
-                WinitEvent::UserEvent(Event { payload: EventType::CreateWindow, .. }) => {
-                    // XXX Ensure that no context is current when creating a new window, otherwise
-                    // it may lock the backing buffer of the surface of current context when asking
-                    // e.g. EGL on Wayland to create a new context.
-                    for window_context in self.windows.values_mut() {
-                        window_context.display.make_not_current();
-                    }
-
-                    if let Err(err) = self.create_window(event_loop) {
-                        error!("Could not open window: {:?}", err);
-                    }
-                },
-                // Process events affecting all windows.
-                WinitEvent::UserEvent(event @ Event { window_id: None, .. }) => {
-                    for window_context in self.windows.values_mut() {
-                        window_context.handle_event(event.clone().into());
-                    }
-                },
-                // Process window-specific events.
-                WinitEvent::WindowEvent { window_id, .. }
-                | WinitEvent::UserEvent(Event { window_id: Some(window_id), .. })
-                | WinitEvent::RedrawRequested(window_id) => {
-                    if let Some(window_context) = self.windows.get_mut(&window_id) {
-                        window_context.handle_event(event);
-                    }
-                },
                 _ => (),
             }
         });
@@ -173,29 +124,6 @@ impl Processor {
             Ok(())
         } else {
             Err(format!("Event loop terminated with code: {}", exit_code).into())
-        }
-    }
-
-    /// Check if an event is irrelevant and can be skipped.
-    fn skip_event(event: &WinitEvent<'_, Event>) -> bool {
-        match event {
-            WinitEvent::NewEvents(StartCause::Init) => false,
-            WinitEvent::WindowEvent { event, .. } => matches!(
-                event,
-                WindowEvent::KeyboardInput { is_synthetic: true, .. }
-                    | WindowEvent::TouchpadPressure { .. }
-                    | WindowEvent::CursorEntered { .. }
-                    | WindowEvent::AxisMotion { .. }
-                    | WindowEvent::HoveredFileCancelled
-                    | WindowEvent::Destroyed
-                    | WindowEvent::HoveredFile(_)
-                    | WindowEvent::Moved(_)
-            ),
-            WinitEvent::Suspended { .. }
-            | WinitEvent::NewEvents { .. }
-            | WinitEvent::MainEventsCleared
-            | WinitEvent::LoopDestroyed => true,
-            _ => false,
         }
     }
 }

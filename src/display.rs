@@ -2,8 +2,7 @@
 //! GPU drawing.
 
 use std::fmt::{self, Formatter};
-use std::mem::{self, ManuallyDrop};
-use std::num::NonZeroU32;
+use std::mem::ManuallyDrop;
 use std::ops::{Deref, DerefMut};
 
 use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
@@ -216,12 +215,6 @@ pub struct DisplayUpdate {
     dimensions: Option<PhysicalSize<u32>>,
 }
 
-impl DisplayUpdate {
-    pub fn dimensions(&self) -> Option<PhysicalSize<u32>> {
-        self.dimensions
-    }
-}
-
 /// The display wraps a window, font rasterizer, and GPU renderer.
 pub struct Display {
     pub window: Window,
@@ -318,22 +311,6 @@ impl Display {
         })
     }
 
-    #[inline]
-    pub fn gl_context(&self) -> &PossiblyCurrentContext {
-        self.context.get()
-    }
-
-    pub fn make_not_current(&mut self) {
-        if self.context.get().is_current() {
-            self.context.replace_with(|context| {
-                context
-                    .make_not_current()
-                    .expect("failed to disable context")
-                    .treat_as_possibly_current()
-            });
-        }
-    }
-
     pub fn make_current(&self) {
         if !self.context.get().is_current() {
             self.context.make_current(&self.surface).expect("failed to make context current")
@@ -348,72 +325,6 @@ impl Display {
         if let Err(err) = res {
             debug!("error calling swap_buffers: {}", err);
         }
-    }
-
-    /// Reset glyph cache.
-    fn reset_glyph_cache(&mut self) {
-        let cache = &mut self.glyph_cache;
-        self.renderer.with_loader(|mut api| {
-            cache.reset_glyph_cache(&mut api);
-        });
-    }
-
-    // XXX: this function must not call to any `OpenGL` related tasks. Renderer updates are
-    // performed in [`Self::process_renderer_update`] right befor drawing.
-    //
-    /// Process update events.
-    pub fn handle_update(&mut self) {
-        let pending_update = mem::take(&mut self.pending_update);
-
-        let (cell_width, cell_height) = (self.size_info.cell_width(), self.size_info.cell_height());
-
-        let (mut width, mut height) = (self.size_info.width(), self.size_info.height());
-        if let Some(dimensions) = pending_update.dimensions() {
-            width = dimensions.width as f32;
-            height = dimensions.height as f32;
-        }
-
-        let padding =
-            (5. * (self.window.scale_factor as f32), 5. * (self.window.scale_factor as f32));
-
-        let new_size = SizeInfo::new(width, height, cell_width, cell_height, padding.0, padding.1);
-
-        // Queue renderer update if terminal dimensions/padding changed.
-        if new_size != self.size_info {
-            let renderer_update = self.pending_renderer_update.get_or_insert(Default::default());
-            renderer_update.resize = true;
-        }
-        self.size_info = new_size;
-    }
-
-    // NOTE: Renderer updates are split off, since platforms like Wayland require resize and other
-    // OpenGL operations to be performed right before rendering. Otherwise they could lock the
-    // back buffer and render with the previous state. This also solves flickering during resizes.
-    //
-    /// Update the state of the renderer.
-    pub fn process_renderer_update(&mut self) {
-        let renderer_update = match self.pending_renderer_update.take() {
-            Some(renderer_update) => renderer_update,
-            _ => return,
-        };
-
-        // Resize renderer.
-        if renderer_update.resize {
-            println!("resizing");
-
-            let width = NonZeroU32::new(self.size_info.width() as u32).unwrap();
-            let height = NonZeroU32::new(self.size_info.height() as u32).unwrap();
-            self.surface.resize(&self.context, width, height);
-        }
-
-        // Ensure we're modifying the correct OpenGL context.
-        self.make_current();
-
-        if renderer_update.clear_font_cache {
-            self.reset_glyph_cache();
-        }
-
-        self.renderer.resize(&self.size_info);
     }
 
     pub fn draw(&mut self) {
@@ -505,13 +416,7 @@ impl Drop for Display {
 /// All renderer updates are cached to be applied just before rendering, to avoid platform-specific
 /// rendering issues.
 #[derive(Debug, Default, Copy, Clone)]
-pub struct RendererUpdate {
-    /// Should resize the window.
-    resize: bool,
-
-    /// Clear font caches.
-    clear_font_cache: bool,
-}
+pub struct RendererUpdate {}
 
 /// Struct for safe in-place replacement.
 ///
@@ -522,11 +427,6 @@ struct Replaceable<T>(Option<T>);
 impl<T> Replaceable<T> {
     pub fn new(inner: T) -> Self {
         Self(Some(inner))
-    }
-
-    /// Replace the contents of the container.
-    pub fn replace_with<F: FnMut(T) -> T>(&mut self, f: F) {
-        self.0 = self.0.take().map(f);
     }
 
     /// Get immutable access to the wrapped value.
