@@ -1,7 +1,7 @@
 use bitflags::bitflags;
-use crossfont::{GlyphKey, RasterizedGlyph};
+use crossfont::RasterizedGlyph;
 
-use crate::display::{RenderableCell, SizeInfo};
+use crate::display::SizeInfo;
 use crate::gl::types::*;
 
 mod atlas;
@@ -44,41 +44,6 @@ pub trait TextRenderApi: LoadGlyph {
     fn batch(&mut self) -> &mut Batch;
 
     fn render_batch(&mut self);
-
-    #[inline]
-    fn add_render_item(&mut self, cell: &RenderableCell, glyph: &Glyph, size_info: &SizeInfo) {
-        // Flush batch if tex changing.
-        if !self.batch().is_empty() && self.batch().tex() != glyph.tex_id {
-            self.render_batch();
-        }
-
-        self.batch().add_item(cell, glyph, size_info);
-
-        if self.batch().full() {
-            self.render_batch();
-        }
-    }
-
-    fn draw_cell(
-        &mut self,
-        cell: RenderableCell,
-        glyph_cache: &mut GlyphCache,
-        size_info: &SizeInfo,
-    ) {
-        let font_key = match cell.font_key {
-            0 => glyph_cache.font_key,
-            1 => glyph_cache.bold_key,
-            2 => glyph_cache.italic_key,
-            3 => glyph_cache.bold_italic_key,
-            _ => glyph_cache.font_key,
-        };
-
-        let glyph_key =
-            GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
-
-        let glyph = glyph_cache.get(glyph_key, self, true);
-        self.add_render_item(&cell, &glyph, size_info);
-    }
 }
 
 pub trait TextShader {
