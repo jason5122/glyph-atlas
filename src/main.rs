@@ -5,7 +5,6 @@ use winit::event_loop::EventLoopBuilder;
 mod display;
 mod editor;
 mod event;
-mod input;
 mod renderer;
 mod window_context;
 

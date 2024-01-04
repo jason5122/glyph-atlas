@@ -18,7 +18,6 @@ use crossfont::{self, Size};
 use crate::display::window::Window;
 use crate::display::{Display, SizeInfo};
 use crate::editor::Editor;
-use crate::input::{self, ActionContext as _};
 use crate::window_context::WindowContext;
 
 /// Alacritty events.
@@ -60,127 +59,6 @@ pub struct ActionContext<'a> {
     pub font_size: &'a mut Size,
     pub dirty: &'a mut bool,
     pub occluded: &'a mut bool,
-}
-
-impl<'a> input::ActionContext for ActionContext<'a> {
-    /// Request a redraw.
-    #[inline]
-    fn mark_dirty(&mut self) {
-        *self.dirty = true;
-    }
-
-    #[inline]
-    fn size_info(&self) -> SizeInfo {
-        self.display.size_info
-    }
-
-    #[inline]
-    fn modifiers(&mut self) -> &mut Modifiers {
-        self.modifiers
-    }
-
-    #[inline]
-    fn window(&mut self) -> &mut Window {
-        &mut self.display.window
-    }
-
-    #[inline]
-    fn display(&mut self) -> &mut Display {
-        self.display
-    }
-
-    #[inline]
-    fn editor(&self) -> &Editor {
-        self.editor
-    }
-
-    #[inline]
-    fn editor_mut(&mut self) -> &mut Editor {
-        self.editor
-    }
-
-    #[cfg(not(windows))]
-    fn create_new_window(&mut self) {
-        let _ = self.event_proxy.send_event(Event::new(EventType::CreateWindow, None));
-    }
-
-    fn close_window(&mut self, window_id: WindowId) {
-        let _ = self.event_proxy.send_event(Event::new(EventType::CloseWindow, window_id));
-    }
-
-    fn redraw_editor(&mut self, window_id: WindowId) {
-        let _ = self.event_proxy.send_event(Event::new(EventType::RedrawEditor, window_id));
-    }
-}
-
-impl input::Processor<ActionContext<'_>> {
-    /// Handle events from winit.
-    pub fn handle_event(&mut self, event: WinitEvent<'_, Event>) {
-        match event {
-            WinitEvent::UserEvent(Event { payload, .. }) => match payload {
-                EventType::Frame => {
-                    self.ctx.display.window.has_frame.store(true, Ordering::Relaxed);
-                },
-                EventType::CreateWindow => {},
-                EventType::CloseWindow => {},
-                EventType::RedrawEditor => {},
-            },
-            WinitEvent::RedrawRequested(_) => *self.ctx.dirty = true,
-            WinitEvent::WindowEvent { event, .. } => {
-                match event {
-                    WindowEvent::CloseRequested => {
-                        let window_id = self.ctx.window().id();
-                        self.ctx.close_window(window_id);
-                    },
-                    WindowEvent::Resized(size) => {
-                        // Ignore resize events to zero in any dimension, to avoid issues with Winit
-                        // and the ConPTY. A 0x0 resize will also occur when the window is minimized
-                        // on Windows.
-                        if size.width == 0 || size.height == 0 {
-                            return;
-                        }
-
-                        self.ctx.display.pending_update.set_dimensions(size);
-                    },
-                    WindowEvent::KeyboardInput { event, is_synthetic: false, .. } => {
-                        self.key_input(event);
-                    },
-                    WindowEvent::ModifiersChanged(modifiers) => self.modifiers_input(modifiers),
-                    WindowEvent::Occluded(occluded) => {
-                        *self.ctx.occluded = occluded;
-                    },
-                    WindowEvent::KeyboardInput { is_synthetic: true, .. }
-                    | WindowEvent::TouchpadPressure { .. }
-                    | WindowEvent::TouchpadMagnify { .. }
-                    | WindowEvent::TouchpadRotate { .. }
-                    | WindowEvent::SmartMagnify { .. }
-                    | WindowEvent::ScaleFactorChanged { .. }
-                    | WindowEvent::CursorEntered { .. }
-                    | WindowEvent::CursorMoved { .. }
-                    | WindowEvent::CursorLeft { .. }
-                    | WindowEvent::AxisMotion { .. }
-                    | WindowEvent::MouseInput { .. }
-                    | WindowEvent::MouseWheel { .. }
-                    | WindowEvent::HoveredFileCancelled
-                    | WindowEvent::Destroyed
-                    | WindowEvent::ThemeChanged(_)
-                    | WindowEvent::HoveredFile(_)
-                    | WindowEvent::Moved(_)
-                    | WindowEvent::Touch(_)
-                    | WindowEvent::Ime(_)
-                    | WindowEvent::DroppedFile(_)
-                    | WindowEvent::Focused(_) => (),
-                }
-            },
-            WinitEvent::Suspended { .. }
-            | WinitEvent::NewEvents { .. }
-            | WinitEvent::DeviceEvent { .. }
-            | WinitEvent::MainEventsCleared
-            | WinitEvent::RedrawEventsCleared
-            | WinitEvent::Resumed
-            | WinitEvent::LoopDestroyed => (),
-        }
-    }
 }
 
 /// The event processor.

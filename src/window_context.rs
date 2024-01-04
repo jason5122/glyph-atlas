@@ -17,7 +17,7 @@ use crate::display::window::Window;
 use crate::display::Display;
 use crate::editor::Editor;
 use crate::event::{ActionContext, Event};
-use crate::{input, renderer};
+use crate::renderer;
 
 use crossfont::Size as FontSize;
 
@@ -94,7 +94,7 @@ impl WindowContext {
             display,
             event_queue: Default::default(),
             modifiers: Default::default(),
-            dirty: Default::default(),
+            dirty: true,
             occluded: Default::default(),
         })
     }
@@ -129,11 +129,6 @@ impl WindowContext {
             editor: &mut self.editor,
             event_proxy,
         };
-        let mut processor = input::Processor::new(context);
-
-        for event in self.event_queue.drain(..) {
-            processor.handle_event(event);
-        }
 
         // Process DisplayUpdate events.
         if self.display.pending_update.dirty {

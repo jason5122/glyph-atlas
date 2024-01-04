@@ -15,6 +15,7 @@ use winit::dpi::PhysicalSize;
 
 use crossfont::{self, Rasterize, Rasterizer};
 
+use crate::display::content::{RenderableCell, RenderableCursor};
 use crate::display::meter::Meter;
 use crate::display::window::Window;
 use crate::editor::buffer::Point;
@@ -435,7 +436,27 @@ impl Display {
 
             let glyph_cache = &mut self.glyph_cache;
 
-            let (cells, cursor) = editor.buffer().get_renderables();
+            // let (cells, cursor) = editor.buffer().get_renderables();
+
+            let mut cells = Vec::new();
+
+            let s = "Hello world!";
+            for (column, character) in s.chars().enumerate() {
+                let cell = RenderableCell {
+                    character,
+                    line: 10,
+                    column,
+                    bg_alpha: 1.0,
+                    fg: Rgb::new(0x33, 0x33, 0x33),
+                    bg: Rgb::new(0xfc, 0xfd, 0xfd),
+                    underline: Rgb::new(0x33, 0x33, 0x33),
+                };
+                cells.push(cell);
+            }
+
+            let cursor_point = Point::new(10, 3);
+            let cursor =
+                RenderableCursor { point: cursor_point, color: Rgb::new(0x5f, 0xb4, 0xb4) };
 
             self.renderer.draw_cells(&size_info, glyph_cache, cells.into_iter());
 
