@@ -4,8 +4,7 @@ use std::ptr;
 use crossfont::RasterizedGlyph;
 use log::info;
 
-use crate::display::content::RenderableCell;
-use crate::display::SizeInfo;
+use crate::display::{RenderableCell, SizeInfo};
 use crate::gl;
 use crate::gl::types::*;
 use crate::renderer::cstr;

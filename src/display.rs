@@ -9,11 +9,9 @@ use log::{debug, info};
 
 use crossfont::{self, Rasterize, Rasterizer};
 
-use crate::display::content::RenderableCell;
 use crate::display::window::Window;
 use crate::renderer::{self, GlyphCache, Renderer};
 
-pub mod content;
 pub mod window;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
@@ -131,10 +129,6 @@ impl Display {
             padding.1,
         );
 
-        info!("Cell size: {} x {}", cell_width, cell_height);
-        info!("Padding: {} x {}", size_info.padding_x, size_info.padding_y);
-        info!("Width: {}, Height: {}", size_info.width, size_info.height);
-
         // Update OpenGL projection.
         renderer.resize(&size_info);
 
@@ -250,4 +244,16 @@ fn compute_cell_size(metrics: &crossfont::Metrics) -> (f32, f32) {
         (metrics.average_advance + offset_x).floor().max(1.) as f32,
         (metrics.line_height + offset_y).floor().max(1.) as f32,
     )
+}
+
+/// Cell ready for rendering.
+#[derive(Clone, Debug)]
+pub struct RenderableCell {
+    pub character: char,
+    pub line: usize,
+    pub column: usize,
+    pub fg: Rgb,
+    pub bg: Rgb,
+    pub bg_alpha: f32,
+    pub font_key: usize,
 }

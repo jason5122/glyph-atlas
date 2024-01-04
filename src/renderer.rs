@@ -4,9 +4,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
 
-use crate::display::content::RenderableCell;
-use crate::display::Rgb;
-use crate::display::SizeInfo;
+use crate::display::{RenderableCell, Rgb, SizeInfo};
 use crate::gl;
 
 pub mod platform;

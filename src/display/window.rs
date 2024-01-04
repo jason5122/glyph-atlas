@@ -1,6 +1,3 @@
-use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
-
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
 use winit::dpi::PhysicalSize;
@@ -11,9 +8,6 @@ use winit::window::{Window as WinitWindow, WindowBuilder, WindowId};
 ///
 /// Wraps the underlying windowing library to provide a stable API in Alacritty.
 pub struct Window {
-    /// Flag tracking that we have a frame we can draw.
-    pub has_frame: Arc<AtomicBool>,
-
     /// Cached scale factor for quickly scaling pixel sizes.
     pub scale_factor: f64,
 
@@ -42,7 +36,7 @@ impl Window {
 
         let scale_factor = window.scale_factor();
 
-        Self { window, has_frame: Arc::new(AtomicBool::new(true)), scale_factor }
+        Self { window, scale_factor }
     }
 
     #[inline]

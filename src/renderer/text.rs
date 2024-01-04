@@ -1,8 +1,7 @@
 use bitflags::bitflags;
 use crossfont::{GlyphKey, RasterizedGlyph};
 
-use crate::display::content::RenderableCell;
-use crate::display::SizeInfo;
+use crate::display::{RenderableCell, SizeInfo};
 use crate::gl;
 use crate::gl::types::*;
 
