@@ -1,4 +1,4 @@
-TARGET = simple-text
+TARGET = glyph-atlas
 
 ASSETS_DIR = extra
 RELEASE_DIR = target/release

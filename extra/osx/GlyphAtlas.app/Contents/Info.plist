@@ -5,9 +5,9 @@
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>
   <key>CFBundleExecutable</key>
-  <string>simple-text</string>
+  <string>glyph-atlas</string>
   <key>CFBundleIdentifier</key>
-  <string>org.simple-text</string>
+  <string>org.jason5122.glyph-atlas</string>
   <key>CFBundleInfoDictionaryVersion</key>
   <string>6.0</string>
   <key>CFBundleName</key>

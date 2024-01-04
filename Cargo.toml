@@ -1,11 +1,11 @@
 [package]
-name = "simple-text"
+name = "glyph-atlas"
 version = "0.1.0"
 authors = ["Jason Han <jjhan@alum.vassar.edu>"]
 license = "MIT"
 description = "A fast, cross-platform, OpenGL text editor experiment"
 readme = "README.md"
-homepage = "https://github.com/jason5122/simple-text"
+homepage = "https://github.com/jason5122/glyph-atlas"
 edition = "2021"
 rust-version = "1.65.0"
 

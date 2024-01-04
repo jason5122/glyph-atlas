@@ -38,10 +38,7 @@ impl From<Event> for WinitEvent<'_, Event> {
 /// Alacritty events.
 #[derive(Clone)]
 pub enum EventType {
-    CreateWindow,
     CloseWindow,
-    RedrawEditor,
-    Frame,
 }
 
 /// The event processor.

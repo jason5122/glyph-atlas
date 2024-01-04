@@ -499,6 +499,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "glyph-atlas"
+version = "0.1.0"
+dependencies = [
+ "ahash",
+ "bitflags 2.4.0",
+ "cocoa",
+ "crop",
+ "crossfont",
+ "gl_generator",
+ "glutin",
+ "home",
+ "libc",
+ "log",
+ "objc",
+ "once_cell",
+ "raw-window-handle",
+ "unicode-segmentation",
+ "unicode-width",
+ "winit",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -941,28 +963,6 @@ dependencies = [
  "expat-sys",
  "freetype-sys",
  "pkg-config",
-]
-
-[[package]]
-name = "simple-text"
-version = "0.1.0"
-dependencies = [
- "ahash",
- "bitflags 2.4.0",
- "cocoa",
- "crop",
- "crossfont",
- "gl_generator",
- "glutin",
- "home",
- "libc",
- "log",
- "objc",
- "once_cell",
- "raw-window-handle",
- "unicode-segmentation",
- "unicode-width",
- "winit",
 ]
 
 [[package]]
