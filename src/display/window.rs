@@ -2,9 +2,6 @@ use std::fmt::{self, Display, Formatter};
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
-#[cfg(target_os = "macos")]
-use winit::platform::macos::{OptionAsAlt, WindowBuilderExtMacOS};
-
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
 use winit::dpi::PhysicalSize;
@@ -72,7 +69,7 @@ impl Window {
     ///
     /// This creates a window and fully initializes a window.
     pub fn new<E>(event_loop: &EventLoopWindowTarget<E>) -> Result<Window> {
-        let window_builder = Window::get_platform_window();
+        let window_builder = WindowBuilder::new();
 
         let window = window_builder
             .with_title("GlyphAtlas")
@@ -104,12 +101,6 @@ impl Window {
     #[inline]
     pub fn set_visible(&self, visibility: bool) {
         self.window.set_visible(visibility);
-    }
-
-    #[cfg(target_os = "macos")]
-    pub fn get_platform_window() -> WindowBuilder {
-        let window = WindowBuilder::new().with_option_as_alt(OptionAsAlt::Both);
-        window
     }
 
     pub fn id(&self) -> WindowId {

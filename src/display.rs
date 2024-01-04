@@ -3,14 +3,13 @@
 
 use std::fmt::{self, Formatter};
 use std::mem::ManuallyDrop;
-use std::ops::{Deref, DerefMut};
+use std::ops::Deref;
 
 use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
 use glutin::prelude::*;
 use glutin::surface::{Surface, SwapInterval, WindowSurface};
 
 use log::{debug, info};
-use winit::dpi::PhysicalSize;
 
 use crossfont::{self, Rasterize, Rasterizer};
 
@@ -122,12 +121,6 @@ pub struct SizeInfo<T = f32> {
 
     /// Vertical window padding.
     padding_y: T,
-
-    /// Number of lines in the viewport.
-    screen_lines: usize,
-
-    /// Number of columns in the viewport.
-    columns: usize,
 }
 
 impl From<SizeInfo<f32>> for SizeInfo<u32> {
@@ -139,8 +132,6 @@ impl From<SizeInfo<f32>> for SizeInfo<u32> {
             cell_height: size_info.cell_height as u32,
             padding_x: size_info.padding_x as u32,
             padding_y: size_info.padding_y as u32,
-            screen_lines: size_info.screen_lines,
-            columns: size_info.screen_lines,
         }
     }
 }
@@ -186,12 +177,6 @@ impl SizeInfo<f32> {
         padding_x: f32,
         padding_y: f32,
     ) -> SizeInfo {
-        let lines = (height - 2. * padding_y) / cell_height;
-        let screen_lines = lines as usize;
-
-        let columns = (width - 2. * padding_x) / cell_width;
-        let columns = columns as usize;
-
         SizeInfo {
             width,
             height,
@@ -199,17 +184,8 @@ impl SizeInfo<f32> {
             cell_height,
             padding_x: padding_x.floor(),
             padding_y: padding_y.floor(),
-            screen_lines,
-            columns,
         }
     }
-}
-
-#[derive(Default, Clone, Debug, PartialEq, Eq)]
-pub struct DisplayUpdate {
-    pub dirty: bool,
-
-    dimensions: Option<PhysicalSize<u32>>,
 }
 
 /// The display wraps a window, font rasterizer, and GPU renderer.
@@ -218,17 +194,11 @@ pub struct Display {
 
     pub size_info: SizeInfo,
 
-    /// Unprocessed display updates.
-    pub pending_update: DisplayUpdate,
-
-    /// The renderer update that takes place only once before the actual rendering.
-    pub pending_renderer_update: Option<RendererUpdate>,
-
     renderer: ManuallyDrop<Renderer>,
 
     surface: ManuallyDrop<Surface<WindowSurface>>,
 
-    context: ManuallyDrop<Replaceable<PossiblyCurrentContext>>,
+    context: PossiblyCurrentContext,
 
     glyph_cache: GlyphCache,
 }
@@ -295,25 +265,23 @@ impl Display {
 
         Ok(Self {
             window,
-            context: ManuallyDrop::new(Replaceable::new(context)),
+            context,
             surface: ManuallyDrop::new(surface),
             renderer: ManuallyDrop::new(renderer),
             glyph_cache,
             size_info,
-            pending_update: Default::default(),
-            pending_renderer_update: Default::default(),
         })
     }
 
     pub fn make_current(&self) {
-        if !self.context.get().is_current() {
+        if !self.context.is_current() {
             self.context.make_current(&self.surface).expect("failed to make context current")
         }
     }
 
     fn swap_buffers(&self) {
         #[allow(clippy::single_match)]
-        let res = match (self.surface.deref(), &self.context.get()) {
+        let res = match (self.surface.deref(), &self.context) {
             (surface, context) => surface.swap_buffers(context),
         };
         if let Err(err) = res {
@@ -379,52 +347,8 @@ impl Drop for Display {
         self.make_current();
         unsafe {
             ManuallyDrop::drop(&mut self.renderer);
-            ManuallyDrop::drop(&mut self.context);
             ManuallyDrop::drop(&mut self.surface);
         }
-    }
-}
-
-/// Pending renderer updates.
-///
-/// All renderer updates are cached to be applied just before rendering, to avoid platform-specific
-/// rendering issues.
-#[derive(Debug, Default, Copy, Clone)]
-pub struct RendererUpdate {}
-
-/// Struct for safe in-place replacement.
-///
-/// This struct allows easily replacing struct fields that provide `self -> Self` methods in-place,
-/// without having to deal with constantly unwrapping the underlying [`Option`].
-struct Replaceable<T>(Option<T>);
-
-impl<T> Replaceable<T> {
-    pub fn new(inner: T) -> Self {
-        Self(Some(inner))
-    }
-
-    /// Get immutable access to the wrapped value.
-    pub fn get(&self) -> &T {
-        self.0.as_ref().unwrap()
-    }
-
-    /// Get mutable access to the wrapped value.
-    pub fn get_mut(&mut self) -> &mut T {
-        self.0.as_mut().unwrap()
-    }
-}
-
-impl<T> Deref for Replaceable<T> {
-    type Target = T;
-
-    fn deref(&self) -> &Self::Target {
-        self.get()
-    }
-}
-
-impl<T> DerefMut for Replaceable<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        self.get_mut()
     }
 }
 
