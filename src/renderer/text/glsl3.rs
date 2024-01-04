@@ -16,6 +16,8 @@ use super::{
     TextRenderBatch, TextRenderer, TextShader,
 };
 
+use super::glyph_cache::GlyphCache;
+
 // Shader source.
 pub static TEXT_SHADER_F: &str = include_str!("../../../res/glsl3/text.f.glsl");
 static TEXT_SHADER_V: &str = include_str!("../../../res/glsl3/text.v.glsl");
@@ -140,12 +142,50 @@ impl Glsl3Renderer {
             batch: Batch::new(),
         }
     }
+
+    pub fn resize(&self, size: &SizeInfo) {
+        unsafe {
+            let program = self.program();
+            gl::UseProgram(program.id());
+            update_projection(program.projection_uniform(), size);
+            gl::UseProgram(0);
+        }
+    }
+
+    pub fn with_loader<F: FnOnce(LoaderApi<'_>) -> T, T>(&mut self, func: F) -> T {
+        unsafe {
+            gl::ActiveTexture(gl::TEXTURE0);
+        }
+
+        func(self.loader_api())
+    }
+
+    pub fn loader_api(&mut self) -> LoaderApi<'_> {
+        LoaderApi {
+            active_tex: &mut self.active_tex,
+            atlas: &mut self.atlas,
+            current_atlas: &mut self.current_atlas,
+        }
+    }
 }
 
 impl<'a> TextRenderer<'a> for Glsl3Renderer {
     type RenderApi = RenderApi<'a>;
     type RenderBatch = Batch;
     type Shader = TextShaderProgram;
+
+    fn draw_cells<'b: 'a, I: Iterator<Item = RenderableCell>>(
+        &'b mut self,
+        size_info: &'b SizeInfo,
+        glyph_cache: &'a mut GlyphCache,
+        cells: I,
+    ) {
+        self.with_api(size_info, |mut api| {
+            for cell in cells {
+                api.draw_cell(cell, glyph_cache, size_info);
+            }
+        })
+    }
 
     fn with_api<'b: 'a, F, T>(&'b mut self, size_info: &'b SizeInfo, func: F) -> T
     where
@@ -182,14 +222,6 @@ impl<'a> TextRenderer<'a> for Glsl3Renderer {
 
     fn program(&self) -> &Self::Shader {
         &self.program
-    }
-
-    fn loader_api(&mut self) -> LoaderApi<'_> {
-        LoaderApi {
-            active_tex: &mut self.active_tex,
-            atlas: &mut self.atlas,
-            current_atlas: &mut self.current_atlas,
-        }
     }
 }
 
@@ -453,5 +485,29 @@ impl TextShader for TextShaderProgram {
 
     fn projection_uniform(&self) -> GLint {
         self.u_projection
+    }
+}
+
+fn update_projection(u_projection: GLint, size: &SizeInfo) {
+    let width = size.width;
+    let height = size.height;
+    let padding_x = size.padding_x;
+    let padding_y = size.padding_y;
+
+    // Bounds check.
+    if (width as u32) < (2 * padding_x as u32) || (height as u32) < (2 * padding_y as u32) {
+        return;
+    }
+
+    // Compute scale and offset factors, from pixel to ndc space. Y is inverted.
+    //   [0, width - 2 * padding_x] to [-1, 1]
+    //   [height - 2 * padding_y, 0] to [-1, 1]
+    let scale_x = 2. / (width - 2. * padding_x);
+    let scale_y = -2. / (height - 2. * padding_y);
+    let offset_x = -1.;
+    let offset_y = 1.;
+
+    unsafe {
+        gl::Uniform4f(u_projection, offset_x, offset_y, scale_x, scale_y);
     }
 }
