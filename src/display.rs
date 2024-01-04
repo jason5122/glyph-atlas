@@ -47,9 +47,6 @@ pub enum Error {
     /// Error dealing with fonts.
     Font(crossfont::Error),
 
-    /// Error in renderer.
-    Render(renderer::Error),
-
     /// Error during context operations.
     Context(glutin::error::Error),
 }
@@ -59,7 +56,6 @@ impl std::error::Error for Error {
         match self {
             Error::Window(err) => err.source(),
             Error::Font(err) => err.source(),
-            Error::Render(err) => err.source(),
             Error::Context(err) => err.source(),
         }
     }
@@ -70,7 +66,6 @@ impl fmt::Display for Error {
         match self {
             Error::Window(err) => err.fmt(f),
             Error::Font(err) => err.fmt(f),
-            Error::Render(err) => err.fmt(f),
             Error::Context(err) => err.fmt(f),
         }
     }
@@ -85,12 +80,6 @@ impl From<window::Error> for Error {
 impl From<crossfont::Error> for Error {
     fn from(val: crossfont::Error) -> Self {
         Error::Font(val)
-    }
-}
-
-impl From<renderer::Error> for Error {
-    fn from(val: renderer::Error) -> Self {
-        Error::Render(val)
     }
 }
 
@@ -205,9 +194,9 @@ pub struct Display {
 impl Display {
     pub fn new(window: Window, gl_context: NotCurrentContext) -> Result<Display, Error> {
         let scale_factor = window.scale_factor as f32;
-        let rasterizer = Rasterizer::new(scale_factor)?;
+        let rasterizer = Rasterizer::new(scale_factor).unwrap();
 
-        let mut glyph_cache = GlyphCache::new(rasterizer)?;
+        let mut glyph_cache = GlyphCache::new(rasterizer);
 
         let metrics = glyph_cache.font_metrics();
         let (cell_width, cell_height) = compute_cell_size(&metrics);
@@ -217,13 +206,13 @@ impl Display {
             &gl_context,
             window.inner_size(),
             window.raw_window_handle(),
-        )?;
+        );
 
         // Make the context current.
-        let context = gl_context.make_current(&surface)?;
+        let context = gl_context.make_current(&surface).unwrap();
 
         // Create renderer.
-        let mut renderer = Renderer::new(&context)?;
+        let mut renderer = Renderer::new(&context);
 
         // Load font common glyphs to accelerate rendering.
         debug!("Filling glyph cache with common glyphs");
@@ -302,24 +291,34 @@ impl Display {
 
             let mut cells = Vec::new();
 
-            let s = "Hello world!";
+            let strs = vec![
+                "Hello world!",
+                "let x = &[1, 2, 4];",
+                "let mut iterator = x.iter();",
+                "assert_eq!(iterator.next(), Some(&1));",
+                "assert_eq!(iterator.next(), Some(&2));",
+                "assert_eq!(iterator.next(), Some(&4));",
+                "assert_eq!(iterator.next(), None);",
+            ];
             // Red
             // let fg = Rgb::new(0xfc, 0xfd, 0xfd);
             // let bg = Rgb::new(0xec, 0x5f, 0x66);
             // Black
             let fg = Rgb::new(0x33, 0x33, 0x33);
             let bg = Rgb::new(0xfc, 0xfd, 0xfd);
-            for (column, character) in s.chars().enumerate() {
-                let cell = RenderableCell {
-                    character,
-                    line: 10,
-                    column,
-                    bg_alpha: 1.0,
-                    fg,
-                    bg,
-                    underline: Rgb::new(0x33, 0x33, 0x33),
-                };
-                cells.push(cell);
+            for (i, s) in strs.iter().enumerate() {
+                for (column, character) in s.chars().enumerate() {
+                    let cell = RenderableCell {
+                        character,
+                        line: 10 + i,
+                        column,
+                        bg_alpha: 1.0,
+                        fg,
+                        bg,
+                        underline: Rgb::new(0x33, 0x33, 0x33),
+                    };
+                    cells.push(cell);
+                }
             }
 
             let cursor_point = Point::new(10, 3);

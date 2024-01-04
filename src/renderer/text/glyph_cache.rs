@@ -67,21 +67,13 @@ pub struct GlyphCache {
 }
 
 impl GlyphCache {
-    pub fn new(mut rasterizer: Rasterizer) -> Result<GlyphCache, crossfont::Error> {
-        let (regular, bold, italic, bold_italic) = Self::compute_font_keys(&mut rasterizer)?;
+    pub fn new(mut rasterizer: Rasterizer) -> GlyphCache {
+        let (regular, bold, italic, bold_italic) =
+            Self::compute_font_keys(&mut rasterizer).unwrap();
 
-        // Need to load at least one glyph for the face before calling metrics.
-        // The glyph requested here ('m' at the time of writing) has no special
-        // meaning.
-        rasterizer.get_glyph(GlyphKey {
-            font_key: regular,
-            character: 'm',
-            size: FontSize::new(16.),
-        })?;
+        let metrics = rasterizer.metrics(regular, FontSize::new(16.)).unwrap();
 
-        let metrics = rasterizer.metrics(regular, FontSize::new(16.))?;
-
-        Ok(Self {
+        Self {
             cache: Default::default(),
             rasterizer,
             font_size: FontSize::new(16.),
@@ -90,7 +82,7 @@ impl GlyphCache {
             italic_key: italic,
             bold_italic_key: bold_italic,
             metrics,
-        })
+        }
     }
 
     fn load_glyphs_for_font<L: LoadGlyph>(&mut self, font: FontKey, loader: &mut L) {

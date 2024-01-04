@@ -1,5 +1,4 @@
 use std::ffi::CString;
-use std::fmt;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use glutin::context::PossiblyCurrentContext;
@@ -41,32 +40,13 @@ pub struct Delta<T: Default> {
 }
 
 #[derive(Debug)]
-pub enum Error {}
-
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        match self {
-            _ => todo!(),
-        }
-    }
-}
-
-impl fmt::Display for Error {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            _ => todo!(),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct Renderer {
     text_renderer: Glsl3Renderer,
     rect_renderer: RectRenderer,
 }
 
 impl Renderer {
-    pub fn new(context: &PossiblyCurrentContext) -> Result<Self, Error> {
+    pub fn new(context: &PossiblyCurrentContext) -> Self {
         // We need to load OpenGL functions once per instance, but only after we make our context
         // current due to WGL limitations.
         if !GL_FUNS_LOADED.swap(true, Ordering::Relaxed) {
@@ -80,7 +60,7 @@ impl Renderer {
         let text_renderer = Glsl3Renderer::new();
         let rect_renderer = RectRenderer::new();
 
-        Ok(Self { text_renderer, rect_renderer })
+        Self { text_renderer, rect_renderer }
     }
 
     pub fn draw_cells<I: Iterator<Item = RenderableCell>>(

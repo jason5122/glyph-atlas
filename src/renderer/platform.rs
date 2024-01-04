@@ -124,7 +124,7 @@ pub fn create_gl_surface(
     gl_context: &NotCurrentContext,
     size: PhysicalSize<u32>,
     raw_window_handle: RawWindowHandle,
-) -> GlutinResult<Surface<WindowSurface>> {
+) -> Surface<WindowSurface> {
     // Get the display and the config used to create that context.
     let gl_display = gl_context.display();
     let gl_config = gl_context.config();
@@ -137,5 +137,5 @@ pub fn create_gl_surface(
         );
 
     // Create the GL surface to draw into.
-    unsafe { gl_display.create_window_surface(&gl_config, &surface_attributes) }
+    unsafe { gl_display.create_window_surface(&gl_config, &surface_attributes).unwrap() }
 }
