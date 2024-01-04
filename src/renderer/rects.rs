@@ -119,8 +119,8 @@ impl RectRenderer {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
         }
 
-        let half_width = size_info.width() / 2.;
-        let half_height = size_info.height() / 2.;
+        let half_width = size_info.width / 2.;
+        let half_height = size_info.height / 2.;
 
         // Build rect vertices vector.
         self.vertices.iter_mut().for_each(|vertices| vertices.clear());
@@ -236,15 +236,15 @@ impl RectShaderProgram {
     }
 
     pub fn update_uniforms(&self, size_info: &SizeInfo) {
-        let viewport_height = size_info.height() - size_info.padding_y();
+        let viewport_height = size_info.height - size_info.padding_y;
         let padding_y = viewport_height
-            - (viewport_height / size_info.cell_height()).floor() * size_info.cell_height();
+            - (viewport_height / size_info.cell_height).floor() * size_info.cell_height;
 
         unsafe {
-            gl::Uniform1f(self.u_cell_width, size_info.cell_width());
-            gl::Uniform1f(self.u_cell_height, size_info.cell_height());
+            gl::Uniform1f(self.u_cell_width, size_info.cell_width);
+            gl::Uniform1f(self.u_cell_height, size_info.cell_height);
             gl::Uniform1f(self.u_padding_y, padding_y);
-            gl::Uniform1f(self.u_padding_x, size_info.padding_x());
+            gl::Uniform1f(self.u_padding_x, size_info.padding_x);
         }
     }
 }

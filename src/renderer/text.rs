@@ -164,10 +164,10 @@ impl<'a> LoadGlyph for LoaderApi<'a> {
 }
 
 fn update_projection(u_projection: GLint, size: &SizeInfo) {
-    let width = size.width();
-    let height = size.height();
-    let padding_x = size.padding_x();
-    let padding_y = size.padding_y();
+    let width = size.width;
+    let height = size.height;
+    let padding_x = size.padding_x;
+    let padding_y = size.padding_y;
 
     // Bounds check.
     if (width as u32) < (2 * padding_x as u32) || (height as u32) < (2 * padding_y as u32) {

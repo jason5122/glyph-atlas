@@ -22,11 +22,11 @@ pub struct RenderableCursor {
 
 impl RenderableCursor {
     pub fn rects(self, size_info: &SizeInfo, thickness: f32) -> RenderRect {
-        let x = self.point.column as f32 * size_info.cell_width() + size_info.padding_x();
-        let y = self.point.line as f32 * size_info.cell_height() + size_info.padding_y();
+        let x = self.point.column as f32 * size_info.cell_width + size_info.padding_x;
+        let y = self.point.line as f32 * size_info.cell_height + size_info.padding_y;
 
-        let width = size_info.cell_width();
-        let height = size_info.cell_height();
+        let width = size_info.cell_width;
+        let height = size_info.cell_height;
 
         let thickness = (thickness * width).round().max(1.);
 

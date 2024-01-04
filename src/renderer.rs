@@ -88,7 +88,7 @@ impl Renderer {
         // Prepare rect rendering state.
         unsafe {
             // Remove padding from viewport.
-            gl::Viewport(0, 0, size_info.width() as i32, size_info.height() as i32);
+            gl::Viewport(0, 0, size_info.width as i32, size_info.height as i32);
             gl::BlendFuncSeparate(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA, gl::SRC_ALPHA, gl::ONE);
         }
 
@@ -122,10 +122,10 @@ impl Renderer {
     pub fn set_viewport(&self, size: &SizeInfo) {
         unsafe {
             gl::Viewport(
-                size.padding_x() as i32,
-                size.padding_y() as i32,
-                size.width() as i32 - 2 * size.padding_x() as i32,
-                size.height() as i32 - 2 * size.padding_y() as i32,
+                size.padding_x as i32,
+                size.padding_y as i32,
+                size.width as i32 - 2 * size.padding_x as i32,
+                size.height as i32 - 2 * size.padding_y as i32,
             );
         }
     }

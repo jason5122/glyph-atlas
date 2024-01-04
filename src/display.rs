@@ -38,23 +38,12 @@ impl Rgb {
 /// Terminal size info.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct SizeInfo<T = f32> {
-    /// Terminal window width.
-    width: T,
-
-    /// Terminal window height.
-    height: T,
-
-    /// Width of individual cell.
-    cell_width: T,
-
-    /// Height of individual cell.
-    cell_height: T,
-
-    /// Horizontal window padding.
-    padding_x: T,
-
-    /// Vertical window padding.
-    padding_y: T,
+    pub width: T,
+    pub height: T,
+    pub cell_width: T,
+    pub cell_height: T,
+    pub padding_x: T,
+    pub padding_y: T,
 }
 
 impl From<SizeInfo<f32>> for SizeInfo<u32> {
@@ -67,38 +56,6 @@ impl From<SizeInfo<f32>> for SizeInfo<u32> {
             padding_x: size_info.padding_x as u32,
             padding_y: size_info.padding_y as u32,
         }
-    }
-}
-
-impl<T: Clone + Copy> SizeInfo<T> {
-    #[inline]
-    pub fn width(&self) -> T {
-        self.width
-    }
-
-    #[inline]
-    pub fn height(&self) -> T {
-        self.height
-    }
-
-    #[inline]
-    pub fn cell_width(&self) -> T {
-        self.cell_width
-    }
-
-    #[inline]
-    pub fn cell_height(&self) -> T {
-        self.cell_height
-    }
-
-    #[inline]
-    pub fn padding_x(&self) -> T {
-        self.padding_x
-    }
-
-    #[inline]
-    pub fn padding_y(&self) -> T {
-        self.padding_y
     }
 }
 
@@ -180,8 +137,8 @@ impl Display {
         );
 
         info!("Cell size: {} x {}", cell_width, cell_height);
-        info!("Padding: {} x {}", size_info.padding_x(), size_info.padding_y());
-        info!("Width: {}, Height: {}", size_info.width(), size_info.height());
+        info!("Padding: {} x {}", size_info.padding_x, size_info.padding_y);
+        info!("Width: {}, Height: {}", size_info.width, size_info.height);
 
         // Update OpenGL projection.
         renderer.resize(&size_info);

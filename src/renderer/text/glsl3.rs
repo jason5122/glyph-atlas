@@ -432,7 +432,7 @@ impl TextShaderProgram {
 
     fn set_term_uniforms(&self, props: &SizeInfo) {
         unsafe {
-            gl::Uniform2f(self.u_cell_dim, props.cell_width(), props.cell_height());
+            gl::Uniform2f(self.u_cell_dim, props.cell_width, props.cell_height);
         }
     }
 
