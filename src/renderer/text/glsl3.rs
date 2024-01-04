@@ -11,7 +11,7 @@ use crate::renderer::cstr;
 use crate::renderer::shader::ShaderProgram;
 
 use super::atlas::{Atlas, ATLAS_SIZE};
-use super::{Glyph, LoadGlyph, LoaderApi, RenderingGlyphFlags, RenderingPass, TextShader};
+use super::{Glyph, LoadGlyph, LoaderApi, RenderingGlyphFlags, RenderingPass};
 
 use super::glyph_cache::GlyphCache;
 
@@ -178,7 +178,7 @@ impl Glsl3Renderer {
         }
     }
 
-    pub fn program(&self) -> &dyn TextShader {
+    pub fn program(&self) -> &TextShaderProgram {
         &self.program
     }
 
@@ -378,57 +378,6 @@ pub struct Batch {
     instances: Vec<InstanceData>,
 }
 
-// impl TextRenderBatch for Batch {
-//     #[inline]
-//     fn tex(&self) -> GLuint {
-//         self.tex
-//     }
-
-//     #[inline]
-//     fn full(&self) -> bool {
-//         self.capacity() == self.len()
-//     }
-
-//     #[inline]
-//     fn is_empty(&self) -> bool {
-//         self.len() == 0
-//     }
-
-//     fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, _: &SizeInfo) {
-//         if self.is_empty() {
-//             self.tex = glyph.tex_id;
-//         }
-
-//         let mut cell_flags = RenderingGlyphFlags::empty();
-//         cell_flags.set(RenderingGlyphFlags::COLORED, glyph.multicolor);
-
-//         self.instances.push(InstanceData {
-//             col: cell.column as u16,
-//             row: cell.line as u16,
-
-//             top: glyph.top,
-//             left: glyph.left,
-//             width: glyph.width,
-//             height: glyph.height,
-
-//             uv_bot: glyph.uv_bot,
-//             uv_left: glyph.uv_left,
-//             uv_width: glyph.uv_width,
-//             uv_height: glyph.uv_height,
-
-//             r: cell.fg.r,
-//             g: cell.fg.g,
-//             b: cell.fg.b,
-//             cell_flags,
-
-//             bg_r: cell.bg.r,
-//             bg_g: cell.bg.g,
-//             bg_b: cell.bg.b,
-//             bg_a: (cell.bg_alpha * 255.0) as u8,
-//         });
-//     }
-// }
-
 impl Batch {
     #[inline]
     pub fn tex(&self) -> GLuint {
@@ -551,9 +500,7 @@ impl TextShaderProgram {
             gl::Uniform1i(self.u_rendering_pass, value);
         }
     }
-}
 
-impl TextShader for TextShaderProgram {
     fn id(&self) -> GLuint {
         self.program.id()
     }

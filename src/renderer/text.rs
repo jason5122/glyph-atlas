@@ -31,11 +31,6 @@ enum RenderingPass {
     SubpixelPass1 = 1,
 }
 
-pub trait TextShader {
-    fn id(&self) -> GLuint;
-    fn projection_uniform(&self) -> GLint;
-}
-
 #[derive(Debug)]
 pub struct LoaderApi<'a> {
     active_tex: &'a mut GLuint,
