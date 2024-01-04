@@ -15,15 +15,12 @@ use winit::dpi::PhysicalSize;
 use crossfont::{self, Rasterize, Rasterizer};
 
 use crate::display::content::{RenderableCell, RenderableCursor};
-use crate::display::meter::Meter;
 use crate::display::window::Window;
 use crate::point::Point;
 use crate::renderer::{self, GlyphCache, Renderer};
 
 pub mod content;
 pub mod window;
-
-mod meter;
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
 pub struct Rgb {
@@ -234,8 +231,6 @@ pub struct Display {
     context: ManuallyDrop<Replaceable<PossiblyCurrentContext>>,
 
     glyph_cache: GlyphCache,
-
-    meter: Meter,
 }
 
 impl Display {
@@ -304,7 +299,6 @@ impl Display {
             surface: ManuallyDrop::new(surface),
             renderer: ManuallyDrop::new(renderer),
             glyph_cache,
-            meter: Meter::new(),
             size_info,
             pending_update: Default::default(),
             pending_renderer_update: Default::default(),
@@ -337,23 +331,25 @@ impl Display {
         self.renderer.clear(background_color, 1.);
 
         {
-            let _sampler = self.meter.sampler();
-
             let glyph_cache = &mut self.glyph_cache;
-
-            // let (cells, cursor) = editor.buffer().get_renderables();
 
             let mut cells = Vec::new();
 
             let s = "Hello world!";
+            // Red
+            // let fg = Rgb::new(0xfc, 0xfd, 0xfd);
+            // let bg = Rgb::new(0xec, 0x5f, 0x66);
+            // Black
+            let fg = Rgb::new(0x33, 0x33, 0x33);
+            let bg = Rgb::new(0xfc, 0xfd, 0xfd);
             for (column, character) in s.chars().enumerate() {
                 let cell = RenderableCell {
                     character,
                     line: 10,
                     column,
                     bg_alpha: 1.0,
-                    fg: Rgb::new(0x33, 0x33, 0x33),
-                    bg: Rgb::new(0xfc, 0xfd, 0xfd),
+                    fg,
+                    bg,
                     underline: Rgb::new(0x33, 0x33, 0x33),
                 };
                 cells.push(cell);
@@ -371,30 +367,8 @@ impl Display {
             self.renderer.draw_rects(&size_info, rects);
         }
 
-        self.draw_render_timer();
-
         // Clearing debug highlights from the previous frame requires full redraw.
         self.swap_buffers();
-    }
-
-    /// Draw render timer.
-    #[inline(never)]
-    fn draw_render_timer(&mut self) {
-        let timing = format!("{:.3} µsec", self.meter.average());
-        let line = self.size_info.screen_lines.saturating_sub(2);
-        let column = 0;
-        let fg = Rgb::new(0xfc, 0xfd, 0xfd);
-        let bg = Rgb::new(0xec, 0x5f, 0x66);
-
-        let glyph_cache = &mut self.glyph_cache;
-        self.renderer.draw_string(
-            Point::new(line, column),
-            fg,
-            bg,
-            timing.chars(),
-            &self.size_info,
-            glyph_cache,
-        );
     }
 }
 

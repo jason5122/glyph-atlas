@@ -9,7 +9,6 @@ use crate::display::content::RenderableCell;
 use crate::display::Rgb;
 use crate::display::SizeInfo;
 use crate::gl;
-use crate::point::Point;
 use crate::renderer::rects::{RectRenderer, RenderRect};
 use crate::renderer::shader::ShaderError;
 
@@ -107,32 +106,6 @@ impl Renderer {
         cells: I,
     ) {
         self.text_renderer.draw_cells(size_info, glyph_cache, cells)
-    }
-
-    /// Draw a string in a variable location. Used for printing the render timer, warnings and
-    /// errors.
-    pub fn draw_string(
-        &mut self,
-        point: Point,
-        fg: Rgb,
-        bg: Rgb,
-        string_chars: impl Iterator<Item = char>,
-        size_info: &SizeInfo,
-        glyph_cache: &mut GlyphCache,
-    ) {
-        let cells = string_chars.enumerate().filter_map(|(i, character)| {
-            Some(RenderableCell {
-                line: point.line,
-                column: point.column + i,
-                character,
-                bg_alpha: 1.0,
-                fg,
-                bg,
-                underline: fg,
-            })
-        });
-
-        self.draw_cells(size_info, glyph_cache, cells);
     }
 
     pub fn with_loader<F, T>(&mut self, func: F) -> T
