@@ -32,8 +32,8 @@ pub enum RenderingPass {
     SubpixelPass1 = 1,
 }
 
-static TEXT_SHADER_F: &str = include_str!("../../res/glsl3/text.f.glsl");
-static TEXT_SHADER_V: &str = include_str!("../../res/glsl3/text.v.glsl");
+static TEXT_SHADER_F: &str = include_str!("../../res/text.f.glsl");
+static TEXT_SHADER_V: &str = include_str!("../../res/text.v.glsl");
 
 #[derive(Debug)]
 #[repr(C)]
