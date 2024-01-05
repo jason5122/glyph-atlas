@@ -53,20 +53,6 @@ pub struct RenderApi<'a> {
 }
 
 impl RenderApi<'_> {
-    #[inline]
-    fn add_render_item(&mut self, cell: &RenderableCell, glyph: &Glyph, size_info: &SizeInfo) {
-        // Flush batch if tex changing.
-        if !self.batch().is_empty() && self.batch().tex() != glyph.tex_id {
-            self.render_batch();
-        }
-
-        self.batch().add_item(cell, glyph, size_info);
-
-        if self.batch().full() {
-            self.render_batch();
-        }
-    }
-
     pub fn draw_cell(
         &mut self,
         cell: RenderableCell,
@@ -85,7 +71,7 @@ impl RenderApi<'_> {
             GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
         let glyph = glyph_cache.get(glyph_key, self, true);
-        self.add_render_item(&cell, &glyph, size_info);
+        self.batch().add_item(&cell, &glyph, size_info);
     }
 
     fn batch(&mut self) -> &mut Batch {
@@ -103,11 +89,11 @@ impl RenderApi<'_> {
         }
 
         // Bind texture if necessary.
-        if *self.active_tex != self.batch.tex() {
+        if *self.active_tex != self.batch.tex {
             unsafe {
-                gl::BindTexture(gl::TEXTURE_2D, self.batch.tex());
+                gl::BindTexture(gl::TEXTURE_2D, self.batch.tex);
             }
-            *self.active_tex = self.batch.tex();
+            *self.active_tex = self.batch.tex;
         }
 
         unsafe {
@@ -128,8 +114,6 @@ impl RenderApi<'_> {
                 self.batch.len() as GLsizei,
             );
         }
-
-        self.batch.clear();
     }
 }
 
@@ -141,9 +125,7 @@ impl<'a> LoadGlyph for RenderApi<'a> {
 
 impl<'a> Drop for RenderApi<'a> {
     fn drop(&mut self) {
-        if !self.batch.is_empty() {
-            self.render_batch();
-        }
+        self.render_batch();
     }
 }
 
@@ -192,23 +174,8 @@ pub struct Batch {
 }
 
 impl Batch {
-    #[inline]
-    pub fn tex(&self) -> GLuint {
-        self.tex
-    }
-
-    #[inline]
-    pub fn full(&self) -> bool {
-        self.capacity() == self.len()
-    }
-
-    #[inline]
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
     pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, _: &SizeInfo) {
-        if self.is_empty() {
+        if self.len() == 0 {
             self.tex = glyph.tex_id;
         }
 
@@ -252,18 +219,8 @@ impl Batch {
     }
 
     #[inline]
-    pub fn capacity(&self) -> usize {
-        BATCH_MAX
-    }
-
-    #[inline]
     pub fn size(&self) -> usize {
         self.len() * size_of::<InstanceData>()
-    }
-
-    pub fn clear(&mut self) {
-        self.tex = 0;
-        self.instances.clear();
     }
 }
 
