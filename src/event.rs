@@ -1,6 +1,5 @@
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
-use std::error::Error;
 
 use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, DeviceEvents, EventLoop, EventLoopWindowTarget};
@@ -31,40 +30,19 @@ impl Processor {
         Processor { windows: Default::default() }
     }
 
-    /// Create initial window and load GL platform.
-    ///
-    /// This will initialize the OpenGL Api and pick a config that
-    /// will be used for the rest of the windows.
-    pub fn create_initial_window(
-        &mut self,
-        event_loop: &EventLoopWindowTarget<Event>,
-    ) -> Result<(), Box<dyn Error>> {
-        let window_context = WindowContext::initial(event_loop);
-
-        self.windows.insert(window_context.id(), window_context);
-
-        Ok(())
-    }
-
     /// Run the event loop.
     ///
     /// The result is exit code generate from the loop.
-    pub fn run(&mut self, mut event_loop: EventLoop<Event>) -> Result<(), Box<dyn Error>> {
+    pub fn run(&mut self, mut event_loop: EventLoop<Event>) {
         // Disable all device events, since we don't care about them.
         event_loop.listen_device_events(DeviceEvents::Never);
 
-        let exit_code = event_loop.run_return(move |event, event_loop, control_flow| {
+        event_loop.run_return(move |event, event_loop, control_flow| {
             match event {
                 // The event loop just got initialized. Create a window.
                 WinitEvent::Resumed => {
-                    if let Err(err) = self.create_initial_window(event_loop) {
-                        // Log the error right away since we can't return it.
-                        eprintln!("Error: {}", err);
-                        *control_flow = ControlFlow::ExitWithCode(1);
-                        return;
-                    }
-
-                    println!("Initialization complete");
+                    let window_context = WindowContext::initial(event_loop);
+                    self.windows.insert(window_context.display.window.id(), window_context);
 
                     for window_context in self.windows.values_mut() {
                         // window_context.handle_event(WinitEvent::RedrawEventsCleared);
@@ -76,12 +54,6 @@ impl Processor {
                 _ => (),
             }
         });
-
-        if exit_code == 0 {
-            Ok(())
-        } else {
-            Err(format!("Event loop terminated with code: {}", exit_code).into())
-        }
     }
 }
 
@@ -126,10 +98,5 @@ impl WindowContext {
     fn new(window: Window, context: NotCurrentContext) -> Self {
         let display = Display::new(window, context);
         WindowContext { display }
-    }
-
-    /// ID of this terminal context.
-    pub fn id(&self) -> WindowId {
-        self.display.window.id()
     }
 }

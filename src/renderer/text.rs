@@ -1,4 +1,5 @@
 use std::ffi::CStr;
+use std::mem::size_of;
 
 use bitflags::bitflags;
 
@@ -12,8 +13,6 @@ pub mod glyph_cache;
 
 pub use glyph_cache::GlyphCache;
 pub use glyph_cache::{Glyph, LoadGlyph};
-
-use std::mem::size_of;
 
 // NOTE: These flags must be in sync with their usage in the text.*.glsl shaders.
 bitflags! {

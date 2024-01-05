@@ -1,4 +1,3 @@
-use std::error::Error;
 use winit::event_loop::EventLoopBuilder;
 
 use crate::event::{Event, Processor};
@@ -12,9 +11,9 @@ mod gl {
     include!(concat!(env!("OUT_DIR"), "/gl_bindings.rs"));
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let window_event_loop = EventLoopBuilder::<Event>::with_user_event().build();
 
     let mut processor = Processor::new();
-    processor.run(window_event_loop)
+    processor.run(window_event_loop);
 }
