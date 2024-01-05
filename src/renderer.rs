@@ -194,10 +194,10 @@ impl Glsl3Renderer {
             gl::ActiveTexture(gl::TEXTURE0);
         }
 
-        self.with_api(|mut api| {
-            for cell in cells {
-                api.draw_cell(cell, glyph_cache, size_info);
-            }
+        self.with_api(&cells, size_info, glyph_cache, |mut api| {
+            // for cell in cells {
+            //     api.draw_cell(cell, glyph_cache, size_info);
+            // }
         });
 
         unsafe {
@@ -206,6 +206,29 @@ impl Glsl3Renderer {
             gl::BindVertexArray(0);
 
             gl::UseProgram(0);
+        }
+    }
+
+    pub fn with_api<F>(
+        &mut self,
+        sells: &Vec<RenderableCell>,
+        size_info: &SizeInfo,
+        glyph_cache: &mut GlyphCache,
+        func: F,
+    ) where
+        F: FnOnce(RenderApi),
+    {
+        let mut api = RenderApi {
+            active_tex: &mut self.active_tex,
+            batch: &mut self.batch,
+            atlas: &mut self.atlas,
+            current_atlas: &mut self.current_atlas,
+            program: &mut self.program,
+        };
+        // func(api);
+
+        for cell in sells {
+            api.draw_cell(cell.clone(), glyph_cache, size_info);
         }
     }
 
@@ -256,19 +279,6 @@ impl Glsl3Renderer {
             current_atlas: &mut self.current_atlas,
         };
         func(loader_api)
-    }
-
-    pub fn with_api<F>(&mut self, func: F)
-    where
-        F: FnOnce(RenderApi),
-    {
-        func(RenderApi {
-            active_tex: &mut self.active_tex,
-            batch: &mut self.batch,
-            atlas: &mut self.atlas,
-            current_atlas: &mut self.current_atlas,
-            program: &mut self.program,
-        });
     }
 }
 
