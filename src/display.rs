@@ -5,7 +5,7 @@ use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
 use glutin::prelude::*;
 use glutin::surface::{Surface, WindowSurface};
 
-use crossfont::{self, Rasterize, Rasterizer};
+use crossfont::{Rasterize, Rasterizer};
 
 use raw_window_handle::HasRawWindowHandle;
 
@@ -132,12 +132,6 @@ impl Display {
         }
     }
 
-    fn swap_buffers(&self) {
-        let _ = match (self.surface.deref(), &self.context) {
-            (surface, context) => surface.swap_buffers(context),
-        };
-    }
-
     pub fn draw(&mut self) {
         let size_info = self.size_info;
 
@@ -148,7 +142,9 @@ impl Display {
         self.renderer.render_batch();
 
         // Clearing debug highlights from the previous frame requires full redraw.
-        self.swap_buffers();
+        let _ = match (self.surface.deref(), &self.context) {
+            (surface, context) => surface.swap_buffers(context),
+        };
     }
 }
 
