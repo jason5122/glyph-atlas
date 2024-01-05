@@ -15,8 +15,7 @@ use winit::dpi::PhysicalSize;
 use winit::event_loop::EventLoopWindowTarget;
 use winit::window::{Window as WinitWindow, WindowBuilder, WindowId};
 
-use crate::renderer::text::Glsl3Renderer;
-use crate::renderer::{self, GlyphCache};
+use crate::renderer::{self, Glsl3Renderer, GlyphCache};
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
 pub struct Rgb {
