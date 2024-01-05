@@ -208,13 +208,6 @@ impl GlyphCache {
         loader.load_glyph(&glyph)
     }
 
-    /// Reset currently cached data in both GL and the registry to default state.
-    pub fn reset_glyph_cache<L: LoadGlyph>(&mut self, loader: &mut L) {
-        self.cache = Default::default();
-
-        self.load_common_glyphs(loader);
-    }
-
     pub fn font_metrics(&self) -> crossfont::Metrics {
         self.metrics
     }

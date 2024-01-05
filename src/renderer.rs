@@ -18,7 +18,7 @@ mod shader;
 pub mod text;
 
 pub use text::{
-    Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, LoaderApi, RenderingPass, TextShaderProgram,
+    Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, RenderingPass, TextShaderProgram,
 };
 
 macro_rules! cstr {
@@ -273,22 +273,30 @@ impl Glsl3Renderer {
 
             let program = &self.program;
             gl::UseProgram(program.id());
-            update_projection(program.projection_uniform(), size);
+
+            let u_projection = program.projection_uniform();
+            let width = size.width;
+            let height = size.height;
+            let padding_x = size.padding_x;
+            let padding_y = size.padding_y;
+
+            // Bounds check.
+            if (width as u32) < (2 * padding_x as u32) || (height as u32) < (2 * padding_y as u32) {
+                return;
+            }
+
+            // Compute scale and offset factors, from pixel to ndc space. Y is inverted.
+            //   [0, width - 2 * padding_x] to [-1, 1]
+            //   [height - 2 * padding_y, 0] to [-1, 1]
+            let scale_x = 2. / (width - 2. * padding_x);
+            let scale_y = -2. / (height - 2. * padding_y);
+            let offset_x = -1.;
+            let offset_y = 1.;
+
+            gl::Uniform4f(u_projection, offset_x, offset_y, scale_x, scale_y);
+
             gl::UseProgram(0);
         }
-    }
-
-    pub fn with_loader<F: FnOnce(LoaderApi) -> T, T>(&mut self, func: F) -> T {
-        unsafe {
-            gl::ActiveTexture(gl::TEXTURE0);
-        }
-
-        let loader_api = LoaderApi {
-            active_tex: &mut self.active_tex,
-            atlas: &mut self.atlas,
-            current_atlas: &mut self.current_atlas,
-        };
-        func(loader_api)
     }
 }
 
@@ -310,29 +318,5 @@ impl LoadGlyph for Glsl3Renderer {
             &mut self.current_atlas,
             rasterized,
         )
-    }
-}
-
-fn update_projection(u_projection: GLint, size: &SizeInfo) {
-    let width = size.width;
-    let height = size.height;
-    let padding_x = size.padding_x;
-    let padding_y = size.padding_y;
-
-    // Bounds check.
-    if (width as u32) < (2 * padding_x as u32) || (height as u32) < (2 * padding_y as u32) {
-        return;
-    }
-
-    // Compute scale and offset factors, from pixel to ndc space. Y is inverted.
-    //   [0, width - 2 * padding_x] to [-1, 1]
-    //   [height - 2 * padding_y, 0] to [-1, 1]
-    let scale_x = 2. / (width - 2. * padding_x);
-    let scale_y = -2. / (height - 2. * padding_y);
-    let offset_x = -1.;
-    let offset_y = 1.;
-
-    unsafe {
-        gl::Uniform4f(u_projection, offset_x, offset_y, scale_x, scale_y);
     }
 }

@@ -1,5 +1,4 @@
 use bitflags::bitflags;
-use crossfont::RasterizedGlyph;
 
 use crate::display::{RenderableCell, SizeInfo};
 use crate::gl;
@@ -10,7 +9,6 @@ use crate::renderer::shader::ShaderProgram;
 pub mod atlas;
 pub mod glyph_cache;
 
-use atlas::Atlas;
 pub use glyph_cache::GlyphCache;
 pub use glyph_cache::{Glyph, LoadGlyph};
 
@@ -190,18 +188,5 @@ impl TextShaderProgram {
 
     pub fn projection_uniform(&self) -> GLint {
         self.u_projection
-    }
-}
-
-#[derive(Debug)]
-pub struct LoaderApi<'a> {
-    pub active_tex: &'a mut GLuint,
-    pub atlas: &'a mut Vec<Atlas>,
-    pub current_atlas: &'a mut usize,
-}
-
-impl<'a> LoadGlyph for LoaderApi<'a> {
-    fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
-        Atlas::load_glyph(self.active_tex, self.atlas, self.current_atlas, rasterized)
     }
 }

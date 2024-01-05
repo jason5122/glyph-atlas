@@ -112,10 +112,7 @@ impl Display {
         let mut renderer = Glsl3Renderer::new(&context);
 
         // Load font common glyphs to accelerate rendering.
-        debug!("Filling glyph cache with common glyphs");
-        renderer.with_loader(|mut api| {
-            glyph_cache.reset_glyph_cache(&mut api);
-        });
+        glyph_cache.load_common_glyphs(&mut renderer);
 
         let padding = (5. * (window.scale_factor as f32), 5. * (window.scale_factor as f32));
         let viewport_size = window.inner_size();
