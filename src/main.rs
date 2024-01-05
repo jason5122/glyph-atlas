@@ -13,7 +13,6 @@ mod gl {
 
 fn main() {
     let window_event_loop = EventLoopBuilder::<Event>::with_user_event().build();
-
-    let mut processor = Processor::new();
-    processor.run(window_event_loop);
+    let processor = Processor::new(window_event_loop);
+    processor.run();
 }
