@@ -5,12 +5,12 @@ use std::error::Error;
 use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, DeviceEvents, EventLoop, EventLoopWindowTarget};
 use winit::platform::run_return::EventLoopExtRunReturn;
-use winit::window::WindowId;
+use winit::window::{Window, WindowBuilder, WindowId};
 
 use glutin::context::NotCurrentContext;
 use raw_window_handle::HasRawDisplayHandle;
 
-use crate::display::{Display, Window};
+use crate::display::Display;
 use crate::renderer;
 
 pub struct Event {}
@@ -102,8 +102,17 @@ impl WindowContext {
             renderer::platform::create_gl_display(raw_display_handle, raw_window_handle).unwrap();
         let gl_config = renderer::platform::pick_gl_config(&gl_display, raw_window_handle).unwrap();
 
-        #[cfg(not(windows))]
-        let window = Window::new(event_loop);
+        let window_builder = WindowBuilder::new();
+        let window = window_builder
+            .with_title("GlyphAtlas")
+            .with_theme(None)
+            .with_visible(false)
+            .with_transparent(false)
+            .with_maximized(true)
+            .with_fullscreen(None)
+            .build(event_loop)
+            .unwrap();
+        window.set_transparent(false);
 
         // Create context.
         let gl_context =

@@ -9,11 +9,9 @@ use log::{debug, info};
 
 use crossfont::{self, Rasterize, Rasterizer};
 
-use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
+use raw_window_handle::HasRawWindowHandle;
 
-use winit::dpi::PhysicalSize;
-use winit::event_loop::EventLoopWindowTarget;
-use winit::window::{Window as WinitWindow, WindowBuilder, WindowId};
+use winit::window::Window;
 
 use crate::renderer::{self, Glsl3Renderer, GlyphCache};
 
@@ -92,8 +90,7 @@ pub struct Display {
 
 impl Display {
     pub fn new(window: Window, gl_context: NotCurrentContext) -> Display {
-        let scale_factor = window.scale_factor as f32;
-        let rasterizer = Rasterizer::new(scale_factor).unwrap();
+        let rasterizer = Rasterizer::new(window.scale_factor() as f32).unwrap();
 
         let mut glyph_cache = GlyphCache::new(rasterizer);
 
@@ -117,7 +114,7 @@ impl Display {
         // Load font common glyphs to accelerate rendering.
         glyph_cache.load_common_glyphs(&mut renderer);
 
-        let padding = (5. * (window.scale_factor as f32), 5. * (window.scale_factor as f32));
+        let padding = (5. * (window.scale_factor() as f32), 5. * (window.scale_factor() as f32));
         let viewport_size = window.inner_size();
 
         // Create new size with at least one column and row.
@@ -202,59 +199,4 @@ pub struct RenderableCell {
     pub bg: Rgb,
     pub bg_alpha: f32,
     pub font_key: usize,
-}
-
-/// A window which can be used for displaying the terminal.
-///
-/// Wraps the underlying windowing library to provide a stable API in Alacritty.
-pub struct Window {
-    /// Cached scale factor for quickly scaling pixel sizes.
-    pub scale_factor: f64,
-
-    window: WinitWindow,
-}
-
-impl Window {
-    /// Create a new window.
-    ///
-    /// This creates a window and fully initializes a window.
-    pub fn new<E>(event_loop: &EventLoopWindowTarget<E>) -> Window {
-        let window_builder = WindowBuilder::new();
-
-        let window = window_builder
-            .with_title("GlyphAtlas")
-            .with_theme(None)
-            .with_visible(false)
-            .with_transparent(false)
-            .with_maximized(true)
-            .with_fullscreen(None)
-            .build(event_loop)
-            .unwrap();
-
-        // Set initial transparency hint.
-        window.set_transparent(false);
-
-        let scale_factor = window.scale_factor();
-
-        Self { window, scale_factor }
-    }
-
-    #[inline]
-    pub fn raw_window_handle(&self) -> RawWindowHandle {
-        self.window.raw_window_handle()
-    }
-
-    #[inline]
-    pub fn inner_size(&self) -> PhysicalSize<u32> {
-        self.window.inner_size()
-    }
-
-    #[inline]
-    pub fn set_visible(&self, visibility: bool) {
-        self.window.set_visible(visibility);
-    }
-
-    pub fn id(&self) -> WindowId {
-        self.window.id()
-    }
 }
