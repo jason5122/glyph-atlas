@@ -14,7 +14,6 @@ use crate::gl::types::*;
 use text::atlas::{Atlas, ATLAS_SIZE};
 
 pub mod platform;
-mod shader;
 pub mod text;
 
 pub use text::{
