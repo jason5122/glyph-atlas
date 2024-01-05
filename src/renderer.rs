@@ -7,7 +7,7 @@ use crossfont::{GlyphKey, RasterizedGlyph};
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
 
-use crate::display::{RenderableCell, Rgb, SizeInfo};
+use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
 
@@ -319,4 +319,30 @@ impl LoadGlyph for Glsl3Renderer {
             rasterized,
         )
     }
+}
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
+pub struct Rgb {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+}
+
+impl Rgb {
+    #[inline]
+    pub const fn new(r: u8, g: u8, b: u8) -> Self {
+        Self { r, g, b }
+    }
+}
+
+/// Cell ready for rendering.
+#[derive(Clone, Debug)]
+pub struct RenderableCell {
+    pub character: char,
+    pub line: usize,
+    pub column: usize,
+    pub fg: Rgb,
+    pub bg: Rgb,
+    pub bg_alpha: f32,
+    pub font_key: usize,
 }

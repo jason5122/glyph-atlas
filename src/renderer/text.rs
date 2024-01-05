@@ -1,10 +1,11 @@
 use bitflags::bitflags;
 
-use crate::display::{RenderableCell, SizeInfo};
+use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
 use crate::renderer::cstr;
 use crate::renderer::shader::ShaderProgram;
+use crate::renderer::RenderableCell;
 
 pub mod atlas;
 pub mod glyph_cache;

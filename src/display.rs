@@ -15,20 +15,6 @@ use winit::window::Window;
 
 use crate::renderer::{self, Glsl3Renderer, GlyphCache};
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
-pub struct Rgb {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-}
-
-impl Rgb {
-    #[inline]
-    pub const fn new(r: u8, g: u8, b: u8) -> Self {
-        Self { r, g, b }
-    }
-}
-
 /// Terminal size info.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct SizeInfo<T = f32> {
@@ -187,16 +173,4 @@ impl Drop for Display {
             ManuallyDrop::drop(&mut self.surface);
         }
     }
-}
-
-/// Cell ready for rendering.
-#[derive(Clone, Debug)]
-pub struct RenderableCell {
-    pub character: char,
-    pub line: usize,
-    pub column: usize,
-    pub fg: Rgb,
-    pub bg: Rgb,
-    pub bg_alpha: f32,
-    pub font_key: usize,
 }
