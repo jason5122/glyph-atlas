@@ -133,10 +133,6 @@ impl Display {
         // Update OpenGL projection.
         renderer.resize(&size_info);
 
-        // Clear screen.
-        let background_color = Rgb::new(0xfc, 0xfd, 0xfd);
-        renderer.clear(background_color, 1.);
-
         window.set_visible(true);
 
         // Disable vsync.
@@ -175,9 +171,6 @@ impl Display {
 
         // Make sure this window's OpenGL context is active.
         self.make_current();
-
-        let background_color = Rgb::new(0xfc, 0xfd, 0xfd);
-        self.renderer.clear(background_color, 1.);
 
         let glyph_cache = &mut self.glyph_cache;
         self.renderer.draw_cells(&size_info, glyph_cache);

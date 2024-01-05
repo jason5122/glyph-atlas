@@ -224,22 +224,7 @@ impl Glsl3Renderer {
         }
     }
 
-    /// Fill the window with `color` and `alpha`.
-    pub fn clear(&self, color: Rgb, alpha: f32) {
-        unsafe {
-            gl::ClearColor(
-                (f32::from(color.r) / 255.0).min(1.0) * alpha,
-                (f32::from(color.g) / 255.0).min(1.0) * alpha,
-                (f32::from(color.b) / 255.0).min(1.0) * alpha,
-                alpha,
-            );
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-        }
-    }
-
-    /// Set the viewport for cell rendering.
-    #[inline]
-    pub fn set_viewport(&self, size: &SizeInfo) {
+    pub fn resize(&self, size: &SizeInfo) {
         unsafe {
             gl::Viewport(
                 size.padding_x as i32,
@@ -247,12 +232,7 @@ impl Glsl3Renderer {
                 size.width as i32 - 2 * size.padding_x as i32,
                 size.height as i32 - 2 * size.padding_y as i32,
             );
-        }
-    }
 
-    pub fn resize(&self, size: &SizeInfo) {
-        self.set_viewport(size);
-        unsafe {
             let program = &self.program;
             gl::UseProgram(program.id());
             update_projection(program.projection_uniform(), size);

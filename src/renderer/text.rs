@@ -71,11 +71,7 @@ impl RenderApi<'_> {
             GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
         let glyph = glyph_cache.get(glyph_key, self, true);
-        self.batch().add_item(&cell, &glyph, size_info);
-    }
-
-    fn batch(&mut self) -> &mut Batch {
-        self.batch
+        self.batch.add_item(&cell, &glyph, size_info);
     }
 
     fn render_batch(&mut self) {
