@@ -97,8 +97,11 @@ impl Display {
 
         let mut glyph_cache = GlyphCache::new(rasterizer);
 
-        let metrics = glyph_cache.font_metrics();
-        let (cell_width, cell_height) = compute_cell_size(&metrics);
+        let offset_x = f64::from(1);
+        let offset_y = f64::from(2);
+        let metrics = glyph_cache.metrics;
+        let cell_width = (metrics.average_advance + offset_x).floor().max(1.) as f32;
+        let cell_height = (metrics.line_height + offset_y).floor().max(1.) as f32;
 
         // Create the GL surface to draw into.
         let surface = renderer::platform::create_gl_surface(
@@ -154,7 +157,6 @@ impl Display {
     }
 
     fn swap_buffers(&self) {
-        #[allow(clippy::single_match)]
         let res = match (self.surface.deref(), &self.context) {
             (surface, context) => surface.swap_buffers(context),
         };
@@ -188,19 +190,6 @@ impl Drop for Display {
             ManuallyDrop::drop(&mut self.surface);
         }
     }
-}
-
-/// Calculate the cell dimensions based on font metrics.
-///
-/// This will return a tuple of the cell width and height.
-#[inline]
-fn compute_cell_size(metrics: &crossfont::Metrics) -> (f32, f32) {
-    let offset_x = f64::from(1);
-    let offset_y = f64::from(2);
-    (
-        (metrics.average_advance + offset_x).floor().max(1.) as f32,
-        (metrics.line_height + offset_y).floor().max(1.) as f32,
-    )
 }
 
 /// Cell ready for rendering.

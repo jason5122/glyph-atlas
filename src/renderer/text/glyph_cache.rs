@@ -42,7 +42,7 @@ pub struct GlyphCache {
     pub italic_key: FontKey,
     pub bold_italic_key: FontKey,
     pub font_size: crossfont::Size,
-    metrics: Metrics,
+    pub metrics: Metrics,
 }
 
 impl GlyphCache {
@@ -206,10 +206,6 @@ impl GlyphCache {
 
         // Add glyph to cache.
         loader.load_glyph(&glyph)
-    }
-
-    pub fn font_metrics(&self) -> crossfont::Metrics {
-        self.metrics
     }
 
     /// Prefetch glyphs that are almost guaranteed to be loaded anyways.
