@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use crossfont::Size as FontSize;
 use crossfont::{
     Error as RasterizerError, FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph,
-    Rasterizer, Size, Style,
+    Rasterizer, Style,
 };
 use unicode_width::UnicodeWidthChar;
 
@@ -79,61 +79,20 @@ impl GlyphCache {
         rasterizer: &mut Rasterizer,
         font_size: crossfont::Size,
     ) -> Result<(FontKey, FontKey, FontKey, FontKey), crossfont::Error> {
-        // Load regular font.
-        let regular_desc = FontDesc::new(
-            String::from("Source Code Pro"),
-            Style::Specific(String::from("Regular")),
-        );
+        let font_name = String::from("Source Code Pro");
 
-        let regular = Self::load_regular_font(rasterizer, &regular_desc, font_size)?;
+        let regular_desc = FontDesc::new(&font_name, Style::Specific(String::from("Regular")));
+        let bold_desc = FontDesc::new(&font_name, Style::Specific(String::from("Bold")));
+        let italic_desc = FontDesc::new(&font_name, Style::Specific(String::from("Italic")));
+        let bold_italic_desc =
+            FontDesc::new(&font_name, Style::Specific(String::from("Bold Italic")));
 
-        // Helper to load a description if it is not the `regular_desc`.
-        let mut load_or_regular = |desc: FontDesc| {
-            if desc == regular_desc {
-                regular
-            } else {
-                rasterizer.load_font(&desc, font_size).unwrap_or(regular)
-            }
-        };
-
-        // Load bold font.
-        let bold_desc =
-            FontDesc::new(String::from("Source Code Pro"), Style::Specific(String::from("Bold")));
-
-        let bold = load_or_regular(bold_desc);
-
-        // Load italic font.
-        let italic_desc =
-            FontDesc::new(String::from("Source Code Pro"), Style::Specific(String::from("Italic")));
-
-        let italic = load_or_regular(italic_desc);
-
-        // Load bold italic font.
-        let bold_italic_desc = FontDesc::new(
-            String::from("Source Code Pro"),
-            Style::Specific(String::from("Bold Italic")),
-        );
-
-        let bold_italic = load_or_regular(bold_italic_desc);
+        let regular = rasterizer.load_font(&regular_desc, font_size).unwrap();
+        let bold = rasterizer.load_font(&bold_desc, font_size).unwrap();
+        let italic = rasterizer.load_font(&italic_desc, font_size).unwrap();
+        let bold_italic = rasterizer.load_font(&bold_italic_desc, font_size).unwrap();
 
         Ok((regular, bold, italic, bold_italic))
-    }
-
-    fn load_regular_font(
-        rasterizer: &mut Rasterizer,
-        description: &FontDesc,
-        size: Size,
-    ) -> Result<FontKey, crossfont::Error> {
-        match rasterizer.load_font(description, size) {
-            Ok(font) => Ok(font),
-            Err(_) => {
-                let fallback_desc = FontDesc::new(
-                    String::from("Source Code Pro"),
-                    Style::Specific(String::from("Regular")),
-                );
-                rasterizer.load_font(&fallback_desc, size)
-            },
-        }
     }
 
     /// Get a glyph from the font.
