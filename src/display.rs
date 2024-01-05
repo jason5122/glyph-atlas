@@ -15,7 +15,8 @@ use winit::dpi::PhysicalSize;
 use winit::event_loop::EventLoopWindowTarget;
 use winit::window::{Window as WinitWindow, WindowBuilder, WindowId};
 
-use crate::renderer::{self, GlyphCache, Renderer};
+use crate::renderer::text::Glsl3Renderer;
+use crate::renderer::{self, GlyphCache};
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
 pub struct Rgb {
@@ -81,7 +82,7 @@ pub struct Display {
 
     pub size_info: SizeInfo,
 
-    renderer: ManuallyDrop<Renderer>,
+    renderer: ManuallyDrop<Glsl3Renderer>,
 
     surface: ManuallyDrop<Surface<WindowSurface>>,
 
@@ -107,11 +108,9 @@ impl Display {
             window.raw_window_handle(),
         );
 
-        // Make the context current.
         let context = gl_context.make_current(&surface).unwrap();
 
-        // Create renderer.
-        let mut renderer = Renderer::new(&context);
+        let mut renderer = Glsl3Renderer::new(&context);
 
         // Load font common glyphs to accelerate rendering.
         debug!("Filling glyph cache with common glyphs");
@@ -181,44 +180,8 @@ impl Display {
         let background_color = Rgb::new(0xfc, 0xfd, 0xfd);
         self.renderer.clear(background_color, 1.);
 
-        {
-            let glyph_cache = &mut self.glyph_cache;
-
-            let mut cells = Vec::new();
-
-            let strs = vec![
-                "Hello world!",
-                "let x = &[1, 2, 4];",
-                "let mut iterator = x.iter();",
-                "assert_eq!(iterator.next(), Some(&1));",
-                "assert_eq!(iterator.next(), Some(&2));",
-                "assert_eq!(iterator.next(), Some(&4));",
-                "assert_eq!(iterator.next(), None);",
-                "huh 🤨 🤨 🤨",
-            ];
-            // Red
-            // let fg = Rgb::new(0xfc, 0xfd, 0xfd);
-            // let bg = Rgb::new(0xec, 0x5f, 0x66);
-            // Black
-            let fg = Rgb::new(0x33, 0x33, 0x33);
-            let bg = Rgb::new(0xfc, 0xfd, 0xfd);
-            for (i, s) in strs.iter().enumerate() {
-                for (column, character) in s.chars().enumerate() {
-                    let cell = RenderableCell {
-                        character,
-                        line: 10 + i,
-                        column,
-                        bg_alpha: 1.0,
-                        fg,
-                        bg,
-                        font_key: 0,
-                    };
-                    cells.push(cell);
-                }
-            }
-
-            self.renderer.draw_cells(&size_info, glyph_cache, cells.into_iter());
-        }
+        let glyph_cache = &mut self.glyph_cache;
+        self.renderer.draw_cells(&size_info, glyph_cache);
 
         // Clearing debug highlights from the previous frame requires full redraw.
         self.swap_buffers();

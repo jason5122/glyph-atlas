@@ -1,7 +1,12 @@
+use std::ffi::CString;
+
+use glutin::context::PossiblyCurrentContext;
+use glutin::display::{GetGlDisplay, GlDisplay};
+
 use bitflags::bitflags;
 use crossfont::{GlyphKey, RasterizedGlyph};
 
-use crate::display::{RenderableCell, SizeInfo};
+use crate::display::{RenderableCell, Rgb, SizeInfo};
 use crate::gl;
 use crate::gl::types::*;
 use crate::renderer::cstr;
@@ -16,8 +21,6 @@ use glyph_cache::{Glyph, LoadGlyph};
 
 use std::mem::size_of;
 use std::ptr;
-
-use log::info;
 
 // NOTE: These flags must be in sync with their usage in the text.*.glsl shaders.
 bitflags! {
@@ -58,8 +61,12 @@ pub struct Glsl3Renderer {
 }
 
 impl Glsl3Renderer {
-    pub fn new() -> Self {
-        info!("Using OpenGL 3.3 renderer");
+    pub fn new(context: &PossiblyCurrentContext) -> Self {
+        let gl_display = context.display();
+        gl::load_with(|symbol| {
+            let symbol = CString::new(symbol).unwrap();
+            gl_display.get_proc_address(symbol.as_c_str()).cast()
+        });
 
         let program = TextShaderProgram::new();
         let mut vao: GLuint = 0;
@@ -163,12 +170,40 @@ impl Glsl3Renderer {
         }
     }
 
-    pub fn draw_cells<I: Iterator<Item = RenderableCell>>(
-        &mut self,
-        size_info: &SizeInfo,
-        glyph_cache: &mut GlyphCache,
-        cells: I,
-    ) {
+    pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
+        let mut cells = Vec::new();
+
+        let strs = vec![
+            "Hello world!",
+            "let x = &[1, 2, 4];",
+            "let mut iterator = x.iter();",
+            "assert_eq!(iterator.next(), Some(&1));",
+            "assert_eq!(iterator.next(), Some(&2));",
+            "assert_eq!(iterator.next(), Some(&4));",
+            "assert_eq!(iterator.next(), None);",
+            "huh 🤨 🤨 🤨",
+        ];
+        // Red
+        // let fg = Rgb::new(0xfc, 0xfd, 0xfd);
+        // let bg = Rgb::new(0xec, 0x5f, 0x66);
+        // Black
+        let fg = Rgb::new(0x33, 0x33, 0x33);
+        let bg = Rgb::new(0xfc, 0xfd, 0xfd);
+        for (i, s) in strs.iter().enumerate() {
+            for (column, character) in s.chars().enumerate() {
+                let cell = RenderableCell {
+                    character,
+                    line: 10 + i,
+                    column,
+                    bg_alpha: 1.0,
+                    fg,
+                    bg,
+                    font_key: 0,
+                };
+                cells.push(cell);
+            }
+        }
+
         self.with_api(size_info, |mut api| {
             for cell in cells {
                 api.draw_cell(cell, glyph_cache, size_info);
@@ -176,7 +211,34 @@ impl Glsl3Renderer {
         })
     }
 
+    /// Fill the window with `color` and `alpha`.
+    pub fn clear(&self, color: Rgb, alpha: f32) {
+        unsafe {
+            gl::ClearColor(
+                (f32::from(color.r) / 255.0).min(1.0) * alpha,
+                (f32::from(color.g) / 255.0).min(1.0) * alpha,
+                (f32::from(color.b) / 255.0).min(1.0) * alpha,
+                alpha,
+            );
+            gl::Clear(gl::COLOR_BUFFER_BIT);
+        }
+    }
+
+    /// Set the viewport for cell rendering.
+    #[inline]
+    pub fn set_viewport(&self, size: &SizeInfo) {
+        unsafe {
+            gl::Viewport(
+                size.padding_x as i32,
+                size.padding_y as i32,
+                size.width as i32 - 2 * size.padding_x as i32,
+                size.height as i32 - 2 * size.padding_y as i32,
+            );
+        }
+    }
+
     pub fn resize(&self, size: &SizeInfo) {
+        self.set_viewport(size);
         unsafe {
             let program = self.program();
             gl::UseProgram(program.id());
