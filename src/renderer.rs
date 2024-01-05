@@ -21,14 +21,6 @@ pub use text::{
     Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, RenderingPass, TextShaderProgram,
 };
 
-macro_rules! cstr {
-    ($s:literal) => {
-        // This can be optimized into an no-op with pre-allocated NUL-terminated bytes.
-        unsafe { std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast()) }
-    };
-}
-pub(crate) use cstr;
-
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
 
@@ -312,7 +304,7 @@ impl LoadGlyph for Glsl3Renderer {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Copy, Clone, Default)]
+#[derive(Copy, Clone)]
 pub struct Rgb {
     pub r: u8,
     pub g: u8,
@@ -326,8 +318,6 @@ impl Rgb {
     }
 }
 
-/// Cell ready for rendering.
-#[derive(Clone, Debug)]
 pub struct RenderableCell {
     pub character: char,
     pub line: usize,

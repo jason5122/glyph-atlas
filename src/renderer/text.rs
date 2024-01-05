@@ -3,7 +3,6 @@ use bitflags::bitflags;
 use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
-use crate::renderer::cstr;
 use crate::renderer::shader::ShaderProgram;
 use crate::renderer::RenderableCell;
 
@@ -154,6 +153,13 @@ pub struct TextShaderProgram {
 
 impl TextShaderProgram {
     pub fn new() -> TextShaderProgram {
+        macro_rules! cstr {
+            ($s:literal) => {
+                // This can be optimized into an no-op with pre-allocated NUL-terminated bytes.
+                unsafe { std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast()) }
+            };
+        }
+
         let program = ShaderProgram::new(None, TEXT_SHADER_V, TEXT_SHADER_F);
         Self {
             u_projection: program.get_uniform_location(cstr!("projection")),
