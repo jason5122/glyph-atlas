@@ -11,8 +11,7 @@ use crate::renderer::RenderableCell;
 pub mod atlas;
 pub mod glyph_cache;
 
-pub use glyph_cache::GlyphCache;
-pub use glyph_cache::{Glyph, LoadGlyph};
+pub use glyph_cache::{Glyph, GlyphCache, LoadGlyph};
 
 // NOTE: These flags must be in sync with their usage in the text.*.glsl shaders.
 bitflags! {

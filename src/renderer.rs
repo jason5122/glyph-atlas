@@ -201,7 +201,7 @@ impl Glsl3Renderer {
             let glyph_key =
                 GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
-            let glyph = glyph_cache.get(glyph_key, self, true);
+            let glyph = glyph_cache.get(glyph_key, self);
             self.batch.add_item(&cell, &glyph);
         }
     }
