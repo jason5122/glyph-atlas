@@ -12,7 +12,7 @@ pub mod glyph_cache;
 
 use atlas::Atlas;
 pub use glyph_cache::GlyphCache;
-use glyph_cache::{Glyph, LoadGlyph};
+pub use glyph_cache::{Glyph, LoadGlyph};
 
 use std::mem::size_of;
 use std::ptr;
@@ -28,7 +28,7 @@ bitflags! {
 }
 
 #[repr(u8)]
-enum RenderingPass {
+pub enum RenderingPass {
     /// Rendering pass used to render background color in text shaders.
     Background = 0,
 
@@ -121,7 +121,7 @@ impl<'a> LoadGlyph for RenderApi<'a> {
 
 impl<'a> Drop for RenderApi<'a> {
     fn drop(&mut self) {
-        self.render_batch();
+        // self.render_batch();
     }
 }
 
@@ -165,8 +165,8 @@ pub struct InstanceData {
 
 #[derive(Debug, Default)]
 pub struct Batch {
-    tex: GLuint,
-    instances: Vec<InstanceData>,
+    pub tex: GLuint,
+    pub instances: Vec<InstanceData>,
 }
 
 impl Batch {
@@ -257,7 +257,7 @@ impl TextShaderProgram {
         }
     }
 
-    fn set_rendering_pass(&self, rendering_pass: RenderingPass) {
+    pub fn set_rendering_pass(&self, rendering_pass: RenderingPass) {
         let value = match rendering_pass {
             RenderingPass::Background | RenderingPass::SubpixelPass1 => rendering_pass as i32,
         };

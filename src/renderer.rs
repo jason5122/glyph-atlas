@@ -15,7 +15,10 @@ pub mod platform;
 mod shader;
 pub mod text;
 
-pub use text::{Batch, GlyphCache, InstanceData, LoaderApi, RenderApi, TextShaderProgram};
+pub use text::{
+    Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, LoaderApi, RenderApi, RenderingPass,
+    TextShaderProgram,
+};
 
 macro_rules! cstr {
     ($s:literal) => {
@@ -194,7 +197,7 @@ impl Glsl3Renderer {
             gl::ActiveTexture(gl::TEXTURE0);
         }
 
-        let api = RenderApi {
+        let mut api = RenderApi {
             active_tex: &mut self.active_tex,
             batch: &mut self.batch,
             atlas: &mut self.atlas,
@@ -202,25 +205,46 @@ impl Glsl3Renderer {
             program: &mut self.program,
         };
 
-        Glsl3Renderer::with_api(api, cells, size_info, glyph_cache);
-
-        unsafe {
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-            gl::BindVertexArray(0);
-
-            gl::UseProgram(0);
+        for cell in cells {
+            api.draw_cell(cell, glyph_cache, size_info);
         }
     }
 
-    pub fn with_api(
-        mut api: RenderApi,
-        cells: Vec<RenderableCell>,
-        size_info: &SizeInfo,
-        glyph_cache: &mut GlyphCache,
-    ) {
-        for cell in cells {
-            api.draw_cell(cell, glyph_cache, size_info);
+    pub fn render_batch(&mut self) {
+        unsafe {
+            gl::BufferSubData(
+                gl::ARRAY_BUFFER,
+                0,
+                self.batch.size() as isize,
+                self.batch.instances.as_ptr() as *const _,
+            );
+        }
+
+        // Bind texture if necessary.
+        if self.active_tex != self.batch.tex {
+            unsafe {
+                gl::BindTexture(gl::TEXTURE_2D, self.batch.tex);
+            }
+            self.active_tex = self.batch.tex;
+        }
+
+        unsafe {
+            self.program.set_rendering_pass(RenderingPass::Background);
+            gl::DrawElementsInstanced(
+                gl::TRIANGLES,
+                6,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+                self.batch.len() as GLsizei,
+            );
+            self.program.set_rendering_pass(RenderingPass::SubpixelPass1);
+            gl::DrawElementsInstanced(
+                gl::TRIANGLES,
+                6,
+                gl::UNSIGNED_INT,
+                ptr::null(),
+                self.batch.len() as GLsizei,
+            );
         }
     }
 

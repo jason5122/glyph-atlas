@@ -174,6 +174,7 @@ impl Display {
 
         let glyph_cache = &mut self.glyph_cache;
         self.renderer.draw_cells(&size_info, glyph_cache);
+        self.renderer.render_batch();
 
         // Clearing debug highlights from the previous frame requires full redraw.
         self.swap_buffers();
