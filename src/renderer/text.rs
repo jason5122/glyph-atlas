@@ -1,5 +1,5 @@
 use bitflags::bitflags;
-use crossfont::{GlyphKey, RasterizedGlyph};
+use crossfont::RasterizedGlyph;
 
 use crate::display::{RenderableCell, SizeInfo};
 use crate::gl;
@@ -15,7 +15,6 @@ pub use glyph_cache::GlyphCache;
 pub use glyph_cache::{Glyph, LoadGlyph};
 
 use std::mem::size_of;
-use std::ptr;
 
 // NOTE: These flags must be in sync with their usage in the text.*.glsl shaders.
 bitflags! {
@@ -42,88 +41,6 @@ static TEXT_SHADER_V: &str = include_str!("../../res/glsl3/text.v.glsl");
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
-
-#[derive(Debug)]
-pub struct RenderApi<'a> {
-    pub active_tex: &'a mut GLuint,
-    pub batch: &'a mut Batch,
-    pub atlas: &'a mut Vec<Atlas>,
-    pub current_atlas: &'a mut usize,
-    pub program: &'a mut TextShaderProgram,
-}
-
-impl RenderApi<'_> {
-    pub fn draw_cell(
-        &mut self,
-        cell: RenderableCell,
-        glyph_cache: &mut GlyphCache,
-        size_info: &SizeInfo,
-    ) {
-        let font_key = match cell.font_key {
-            0 => glyph_cache.font_key,
-            1 => glyph_cache.bold_key,
-            2 => glyph_cache.italic_key,
-            3 => glyph_cache.bold_italic_key,
-            _ => glyph_cache.font_key,
-        };
-
-        let glyph_key =
-            GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
-
-        let glyph = glyph_cache.get(glyph_key, self, true);
-        self.batch.add_item(&cell, &glyph, size_info);
-    }
-
-    fn render_batch(&mut self) {
-        unsafe {
-            gl::BufferSubData(
-                gl::ARRAY_BUFFER,
-                0,
-                self.batch.size() as isize,
-                self.batch.instances.as_ptr() as *const _,
-            );
-        }
-
-        // Bind texture if necessary.
-        if *self.active_tex != self.batch.tex {
-            unsafe {
-                gl::BindTexture(gl::TEXTURE_2D, self.batch.tex);
-            }
-            *self.active_tex = self.batch.tex;
-        }
-
-        unsafe {
-            self.program.set_rendering_pass(RenderingPass::Background);
-            gl::DrawElementsInstanced(
-                gl::TRIANGLES,
-                6,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-                self.batch.len() as GLsizei,
-            );
-            self.program.set_rendering_pass(RenderingPass::SubpixelPass1);
-            gl::DrawElementsInstanced(
-                gl::TRIANGLES,
-                6,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-                self.batch.len() as GLsizei,
-            );
-        }
-    }
-}
-
-impl<'a> LoadGlyph for RenderApi<'a> {
-    fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
-        Atlas::load_glyph(self.active_tex, self.atlas, self.current_atlas, rasterized)
-    }
-}
-
-impl<'a> Drop for RenderApi<'a> {
-    fn drop(&mut self) {
-        // self.render_batch();
-    }
-}
 
 #[derive(Debug)]
 #[repr(C)]

@@ -2,6 +2,8 @@ use std::ffi::CString;
 use std::mem::size_of;
 use std::ptr;
 
+use crossfont::{GlyphKey, RasterizedGlyph};
+
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
 
@@ -16,8 +18,7 @@ mod shader;
 pub mod text;
 
 pub use text::{
-    Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, LoaderApi, RenderApi, RenderingPass,
-    TextShaderProgram,
+    Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, LoaderApi, RenderingPass, TextShaderProgram,
 };
 
 macro_rules! cstr {
@@ -197,17 +198,30 @@ impl Glsl3Renderer {
             gl::ActiveTexture(gl::TEXTURE0);
         }
 
-        let mut api = RenderApi {
-            active_tex: &mut self.active_tex,
-            batch: &mut self.batch,
-            atlas: &mut self.atlas,
-            current_atlas: &mut self.current_atlas,
-            program: &mut self.program,
+        for cell in cells {
+            self.draw_cell(cell, glyph_cache, size_info);
+        }
+    }
+
+    pub fn draw_cell(
+        &mut self,
+        cell: RenderableCell,
+        glyph_cache: &mut GlyphCache,
+        size_info: &SizeInfo,
+    ) {
+        let font_key = match cell.font_key {
+            0 => glyph_cache.font_key,
+            1 => glyph_cache.bold_key,
+            2 => glyph_cache.italic_key,
+            3 => glyph_cache.bold_italic_key,
+            _ => glyph_cache.font_key,
         };
 
-        for cell in cells {
-            api.draw_cell(cell, glyph_cache, size_info);
-        }
+        let glyph_key =
+            GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
+
+        let glyph = glyph_cache.get(glyph_key, self, true);
+        self.batch.add_item(&cell, &glyph, size_info);
     }
 
     pub fn render_batch(&mut self) {
@@ -285,6 +299,17 @@ impl Drop for Glsl3Renderer {
             gl::DeleteBuffers(1, &self.ebo);
             gl::DeleteVertexArrays(1, &self.vao);
         }
+    }
+}
+
+impl LoadGlyph for Glsl3Renderer {
+    fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
+        Atlas::load_glyph(
+            &mut self.active_tex,
+            &mut self.atlas,
+            &mut self.current_atlas,
+            rasterized,
+        )
     }
 }
 
