@@ -184,11 +184,29 @@ impl Glsl3Renderer {
             }
         }
 
-        self.with_api(size_info, |mut api| {
+        unsafe {
+            gl::UseProgram(self.program.id());
+            self.program.set_term_uniforms(size_info);
+
+            gl::BindVertexArray(self.vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
+            gl::ActiveTexture(gl::TEXTURE0);
+        }
+
+        self.with_api(|mut api| {
             for cell in cells {
                 api.draw_cell(cell, glyph_cache, size_info);
             }
-        })
+        });
+
+        unsafe {
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
+            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
+            gl::BindVertexArray(0);
+
+            gl::UseProgram(0);
+        }
     }
 
     /// Fill the window with `color` and `alpha`.
@@ -240,37 +258,17 @@ impl Glsl3Renderer {
         func(loader_api)
     }
 
-    pub fn with_api<F, T>(&mut self, size_info: &SizeInfo, func: F) -> T
+    pub fn with_api<F>(&mut self, func: F)
     where
-        F: FnOnce(RenderApi) -> T,
+        F: FnOnce(RenderApi),
     {
-        unsafe {
-            gl::UseProgram(self.program.id());
-            self.program.set_term_uniforms(size_info);
-
-            gl::BindVertexArray(self.vao);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
-            gl::ActiveTexture(gl::TEXTURE0);
-        }
-
-        let res = func(RenderApi {
+        func(RenderApi {
             active_tex: &mut self.active_tex,
             batch: &mut self.batch,
             atlas: &mut self.atlas,
             current_atlas: &mut self.current_atlas,
             program: &mut self.program,
         });
-
-        unsafe {
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-            gl::BindVertexArray(0);
-
-            gl::UseProgram(0);
-        }
-
-        res
     }
 }
 
