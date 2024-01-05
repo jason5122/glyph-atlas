@@ -28,12 +28,6 @@ pub(crate) use cstr;
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
 
-#[derive(Clone, Copy, Default, PartialEq, Eq)]
-pub struct Delta<T: Default> {
-    pub x: T,
-    pub y: T,
-}
-
 #[derive(Debug)]
 pub struct Glsl3Renderer {
     program: TextShaderProgram,
@@ -226,7 +220,7 @@ impl Glsl3Renderer {
     pub fn resize(&self, size: &SizeInfo) {
         self.set_viewport(size);
         unsafe {
-            let program = self.program();
+            let program = &self.program;
             gl::UseProgram(program.id());
             update_projection(program.projection_uniform(), size);
             gl::UseProgram(0);
@@ -238,19 +232,12 @@ impl Glsl3Renderer {
             gl::ActiveTexture(gl::TEXTURE0);
         }
 
-        func(self.loader_api())
-    }
-
-    pub fn loader_api(&mut self) -> LoaderApi {
-        LoaderApi {
+        let loader_api = LoaderApi {
             active_tex: &mut self.active_tex,
             atlas: &mut self.atlas,
             current_atlas: &mut self.current_atlas,
-        }
-    }
-
-    pub fn program(&self) -> &TextShaderProgram {
-        &self.program
+        };
+        func(loader_api)
     }
 
     pub fn with_api<F, T>(&mut self, size_info: &SizeInfo, func: F) -> T

@@ -96,12 +96,6 @@ impl Atlas {
         Self { id, width: size, height: size, row_extent: 0, row_baseline: 0, row_tallest: 0 }
     }
 
-    pub fn clear(&mut self) {
-        self.row_extent = 0;
-        self.row_baseline = 0;
-        self.row_tallest = 0;
-    }
-
     /// Insert a RasterizedGlyph into the texture atlas.
     pub fn insert(
         &mut self,
@@ -255,14 +249,6 @@ impl Atlas {
                 uv_height: 0.,
             },
         }
-    }
-
-    #[inline]
-    pub fn clear_atlas(atlas: &mut [Atlas], current_atlas: &mut usize) {
-        for atlas in atlas.iter_mut() {
-            atlas.clear();
-        }
-        *current_atlas = 0;
     }
 }
 

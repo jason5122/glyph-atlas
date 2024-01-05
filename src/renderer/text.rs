@@ -137,10 +137,6 @@ impl<'a> LoadGlyph for RenderApi<'a> {
     fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
         Atlas::load_glyph(self.active_tex, self.atlas, self.current_atlas, rasterized)
     }
-
-    fn clear(&mut self) {
-        Atlas::clear_atlas(self.atlas, self.current_atlas)
-    }
 }
 
 impl<'a> Drop for RenderApi<'a> {
@@ -337,9 +333,5 @@ pub struct LoaderApi<'a> {
 impl<'a> LoadGlyph for LoaderApi<'a> {
     fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
         Atlas::load_glyph(self.active_tex, self.atlas, self.current_atlas, rasterized)
-    }
-
-    fn clear(&mut self) {
-        Atlas::clear_atlas(self.atlas, self.current_atlas)
     }
 }

@@ -1,6 +1,7 @@
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
+use crossfont::Size as FontSize;
 use crossfont::{
     Error as RasterizerError, FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph,
     Rasterizer, Size, Style,
@@ -9,17 +10,10 @@ use unicode_width::UnicodeWidthChar;
 
 use crate::gl::types::*;
 
-use crossfont::Size as FontSize;
-
 /// `LoadGlyph` allows for copying a rasterized glyph into graphics memory.
 pub trait LoadGlyph {
     /// Load the rasterized glyph into GPU memory.
     fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph;
-
-    /// Clear any state accumulated from previous loaded glyphs.
-    ///
-    /// This can, for instance, be used to reset the texture Atlas.
-    fn clear(&mut self);
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -216,7 +210,6 @@ impl GlyphCache {
 
     /// Reset currently cached data in both GL and the registry to default state.
     pub fn reset_glyph_cache<L: LoadGlyph>(&mut self, loader: &mut L) {
-        loader.clear();
         self.cache = Default::default();
 
         self.load_common_glyphs(loader);
