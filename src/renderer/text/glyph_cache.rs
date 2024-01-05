@@ -1,6 +1,6 @@
+use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
-use ahash::RandomState;
 use crossfont::{
     Error as RasterizerError, FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph,
     Rasterizer, Size, Style,

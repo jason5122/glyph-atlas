@@ -1,7 +1,7 @@
+use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 use std::error::Error;
 
-use ahash::RandomState;
 use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, DeviceEvents, EventLoop, EventLoopWindowTarget};
 use winit::platform::run_return::EventLoopExtRunReturn;
