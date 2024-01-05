@@ -3,9 +3,7 @@ use std::ops::Deref;
 
 use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
 use glutin::prelude::*;
-use glutin::surface::{Surface, SwapInterval, WindowSurface};
-
-use log::{debug, info};
+use glutin::surface::{Surface, WindowSurface};
 
 use crossfont::{self, Rasterize, Rasterizer};
 
@@ -118,11 +116,6 @@ impl Display {
 
         window.set_visible(true);
 
-        // Disable vsync.
-        if let Err(err) = surface.set_swap_interval(&context, SwapInterval::DontWait) {
-            info!("Failed to disable vsync: {}", err);
-        }
-
         Self {
             window,
             context,
@@ -140,12 +133,9 @@ impl Display {
     }
 
     fn swap_buffers(&self) {
-        let res = match (self.surface.deref(), &self.context) {
+        let _ = match (self.surface.deref(), &self.context) {
             (surface, context) => surface.swap_buffers(context),
         };
-        if let Err(err) = res {
-            debug!("error calling swap_buffers: {}", err);
-        }
     }
 
     pub fn draw(&mut self) {
@@ -154,8 +144,7 @@ impl Display {
         // Make sure this window's OpenGL context is active.
         self.make_current();
 
-        let glyph_cache = &mut self.glyph_cache;
-        self.renderer.draw_cells(&size_info, glyph_cache);
+        self.renderer.draw_cells(&size_info, &mut self.glyph_cache);
         self.renderer.render_batch();
 
         // Clearing debug highlights from the previous frame requires full redraw.

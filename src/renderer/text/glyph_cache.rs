@@ -47,15 +47,16 @@ pub struct GlyphCache {
 
 impl GlyphCache {
     pub fn new(mut rasterizer: Rasterizer) -> GlyphCache {
+        let font_size = FontSize::new(16.);
         let (regular, bold, italic, bold_italic) =
-            Self::compute_font_keys(&mut rasterizer).unwrap();
+            Self::compute_font_keys(&mut rasterizer, font_size).unwrap();
 
-        let metrics = rasterizer.metrics(regular, FontSize::new(16.)).unwrap();
+        let metrics = rasterizer.metrics(regular, font_size).unwrap();
 
         Self {
             cache: Default::default(),
             rasterizer,
-            font_size: FontSize::new(16.),
+            font_size,
             font_key: regular,
             bold_key: bold,
             italic_key: italic,
@@ -76,23 +77,22 @@ impl GlyphCache {
     /// Computes font keys for (Regular, Bold, Italic, Bold Italic).
     fn compute_font_keys(
         rasterizer: &mut Rasterizer,
+        font_size: crossfont::Size,
     ) -> Result<(FontKey, FontKey, FontKey, FontKey), crossfont::Error> {
-        let size = FontSize::new(16.);
-
         // Load regular font.
         let regular_desc = FontDesc::new(
             String::from("Source Code Pro"),
             Style::Specific(String::from("Regular")),
         );
 
-        let regular = Self::load_regular_font(rasterizer, &regular_desc, size)?;
+        let regular = Self::load_regular_font(rasterizer, &regular_desc, font_size)?;
 
         // Helper to load a description if it is not the `regular_desc`.
         let mut load_or_regular = |desc: FontDesc| {
             if desc == regular_desc {
                 regular
             } else {
-                rasterizer.load_font(&desc, size).unwrap_or(regular)
+                rasterizer.load_font(&desc, font_size).unwrap_or(regular)
             }
         };
 

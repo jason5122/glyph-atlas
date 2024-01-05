@@ -199,29 +199,20 @@ impl Glsl3Renderer {
         }
 
         for cell in cells {
-            self.draw_cell(cell, glyph_cache, size_info);
+            let font_key = match cell.font_key {
+                0 => glyph_cache.font_key,
+                1 => glyph_cache.bold_key,
+                2 => glyph_cache.italic_key,
+                3 => glyph_cache.bold_italic_key,
+                _ => glyph_cache.font_key,
+            };
+
+            let glyph_key =
+                GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
+
+            let glyph = glyph_cache.get(glyph_key, self, true);
+            self.batch.add_item(&cell, &glyph);
         }
-    }
-
-    pub fn draw_cell(
-        &mut self,
-        cell: RenderableCell,
-        glyph_cache: &mut GlyphCache,
-        size_info: &SizeInfo,
-    ) {
-        let font_key = match cell.font_key {
-            0 => glyph_cache.font_key,
-            1 => glyph_cache.bold_key,
-            2 => glyph_cache.italic_key,
-            3 => glyph_cache.bold_italic_key,
-            _ => glyph_cache.font_key,
-        };
-
-        let glyph_key =
-            GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
-
-        let glyph = glyph_cache.get(glyph_key, self, true);
-        self.batch.add_item(&cell, &glyph, size_info);
     }
 
     pub fn render_batch(&mut self) {

@@ -34,12 +34,8 @@ pub enum RenderingPass {
     SubpixelPass1 = 1,
 }
 
-// Shader source.
-pub static TEXT_SHADER_F: &str = include_str!("../../res/glsl3/text.f.glsl");
+static TEXT_SHADER_F: &str = include_str!("../../res/glsl3/text.f.glsl");
 static TEXT_SHADER_V: &str = include_str!("../../res/glsl3/text.v.glsl");
-
-/// Maximum items to be drawn in a batch.
-const BATCH_MAX: usize = 0x1_0000;
 
 #[derive(Debug)]
 #[repr(C)]
@@ -86,7 +82,7 @@ pub struct Batch {
 }
 
 impl Batch {
-    pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph, _: &SizeInfo) {
+    pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph) {
         if self.len() == 0 {
             self.tex = glyph.tex_id;
         }
@@ -122,7 +118,7 @@ impl Batch {
 
     #[inline]
     pub fn new() -> Self {
-        Self { tex: 0, instances: Vec::with_capacity(BATCH_MAX) }
+        Self { tex: 0, instances: Vec::new() }
     }
 
     #[inline]
