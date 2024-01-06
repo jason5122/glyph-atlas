@@ -21,7 +21,7 @@ use core_text::font::{
 use core_text::font_collection::create_for_family;
 use core_text::font_descriptor::{
     self, kCTFontColorGlyphsTrait, kCTFontDefaultOrientation, kCTFontEnabledAttribute,
-    CTFontDescriptor, SymbolicTraitAccessors,
+    CTFontDescriptor,
 };
 
 use log::{trace, warn};
@@ -111,35 +111,9 @@ impl Rasterizer {
         Err(Error::FontNotFound(desc.to_owned()))
     }
 
-    fn get_matching_face(
-        &mut self,
-        desc: &FontDesc,
-        slant: Slant,
-        weight: Weight,
-        size: Size,
-    ) -> Result<Font, Error> {
-        let bold = weight == Weight::Bold;
-        let italic = slant != Slant::Normal;
-        let scaled_size = f64::from(size.as_f32_pts()) * f64::from(self.device_pixel_ratio);
-
-        let descriptors = descriptors_for_family(&desc.name[..]);
-        for descriptor in descriptors {
-            let font = descriptor.to_font(scaled_size, true);
-            if font.is_bold() == bold && font.is_italic() == italic {
-                // Found the font we want.
-                return Ok(font);
-            }
-        }
-
-        Err(Error::FontNotFound(desc.to_owned()))
-    }
-
     fn get_font(&mut self, desc: &FontDesc, size: Size) -> Result<Font, Error> {
         match desc.style {
             Style::Specific(ref style) => self.get_specific_face(desc, style, size),
-            Style::Description { slant, weight } => {
-                self.get_matching_face(desc, slant, weight, size)
-            },
         }
     }
 }
@@ -167,7 +141,6 @@ pub enum Weight {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Style {
     Specific(String),
-    Description { slant: Slant, weight: Weight },
 }
 
 impl FontDesc {
@@ -267,20 +240,6 @@ pub enum BitmapBuffer {
     Rgba(Vec<u8>),
 }
 
-impl Default for RasterizedGlyph {
-    fn default() -> RasterizedGlyph {
-        RasterizedGlyph {
-            character: ' ',
-            width: 0,
-            height: 0,
-            top: 0,
-            left: 0,
-            advance: (0, 0),
-            buffer: BitmapBuffer::Rgb(Vec::new()),
-        }
-    }
-}
-
 #[derive(Debug, Copy, Clone)]
 pub struct Metrics {
     pub average_advance: f64,
@@ -298,17 +257,11 @@ pub enum Error {
     /// Unable to find a font matching the description.
     FontNotFound(FontDesc),
 
-    /// Unable to find metrics for a font face.
-    MetricsNotFound,
-
     /// The glyph could not be found in any font.
     MissingGlyph(RasterizedGlyph),
 
     /// Requested an operation with a FontKey that isn't known to the rasterizer.
     UnknownFontKey,
-
-    /// Error from platfrom's font system.
-    PlatformError(String),
 }
 
 pub trait Rasterize {
@@ -364,14 +317,6 @@ impl Font {
             strikeout_position,
             strikeout_thickness,
         }
-    }
-
-    fn is_bold(&self) -> bool {
-        self.ct_font.symbolic_traits().is_bold()
-    }
-
-    fn is_italic(&self) -> bool {
-        self.ct_font.symbolic_traits().is_italic()
     }
 
     fn is_colored(&self) -> bool {
