@@ -1,15 +1,9 @@
 use std::collections::HashMap;
-use std::fmt::{self, Display, Formatter};
 use std::iter;
 use std::ops::{Add, Mul};
-use std::sync::atomic::{AtomicUsize, Ordering};
-
-use std::ffi::CStr;
 use std::path::PathBuf;
 use std::ptr;
-
-use cocoa::base::{id, nil};
-use cocoa::foundation::{NSString, NSUserDefaults};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use core_foundation::array::{CFArray, CFIndex};
 use core_foundation::base::{CFType, ItemRef, TCFType};
@@ -31,9 +25,6 @@ use core_text::font_descriptor::{
 };
 
 use log::{trace, warn};
-use objc::rc::autoreleasepool;
-use objc::{class, msg_send, sel, sel_impl};
-use once_cell::sync::Lazy;
 
 /// According to the documentation, the index of 0 must be a missing glyph character:
 /// https://developer.apple.com/fonts/TrueType-Reference-Manual/RM07/appendixB.html
@@ -184,29 +175,12 @@ pub enum Style {
     Description { slant: Slant, weight: Weight },
 }
 
-impl fmt::Display for Style {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            Style::Specific(ref s) => f.write_str(s),
-            Style::Description { slant, weight } => {
-                write!(f, "slant={:?}, weight={:?}", slant, weight)
-            },
-        }
-    }
-}
-
 impl FontDesc {
     pub fn new<S>(name: S, style: Style) -> FontDesc
     where
         S: Into<String>,
     {
         FontDesc { name: name.into(), style }
-    }
-}
-
-impl fmt::Display for FontDesc {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} - {}", self.name, self.style)
     }
 }
 
@@ -342,26 +316,6 @@ pub enum Error {
     PlatformError(String),
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        None
-    }
-}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        match self {
-            Error::FontNotFound(font) => write!(f, "font {:?} not found", font),
-            Error::MissingGlyph(glyph) => {
-                write!(f, "glyph for character {:?} not found", glyph.character)
-            },
-            Error::UnknownFontKey => f.write_str("invalid font key"),
-            Error::MetricsNotFound => f.write_str("metrics not found"),
-            Error::PlatformError(err) => write!(f, "{}", err),
-        }
-    }
-}
-
 pub trait Rasterize {
     /// Create a new Rasterizer.
     fn new(device_pixel_ratio: f32) -> Result<Self, Error>
@@ -495,7 +449,7 @@ impl Font {
         cg_context.fill_rect(context_rect);
 
         cg_context.set_allows_font_smoothing(true);
-        cg_context.set_should_smooth_fonts(*FONT_SMOOTHING_ENABLED);
+        cg_context.set_should_smooth_fonts(false);
         cg_context.set_allows_font_subpixel_quantization(true);
         cg_context.set_should_subpixel_quantize_fonts(true);
         cg_context.set_allows_font_subpixel_positioning(true);
@@ -668,38 +622,3 @@ fn descriptors_for_family(family: &str) -> Vec<Descriptor> {
 
     out
 }
-
-// The AppleFontSmoothing user default controls font smoothing on macOS, which increases the stroke
-// width. By default it is unset, and the system behaves as though it is set to 2, which means a
-// medium level of font smoothing. The valid values are integers from 0 to 3. Any other type,
-// including a boolean, does not change the behavior. The Core Graphics call we use only supports
-// enabling or disabling font smoothing, so we will treat an integer 0 as disabling it, and any
-// other integer, or a missing value (the default), or a value of any other type, as leaving it
-// enabled.
-static FONT_SMOOTHING_ENABLED: Lazy<bool> = Lazy::new(|| {
-    autoreleasepool(|| unsafe {
-        let key = NSString::alloc(nil).init_str("AppleFontSmoothing");
-        let value: id = msg_send![id::standardUserDefaults(), objectForKey: key];
-
-        if !msg_send![value, isKindOfClass: class!(NSNumber)] {
-            return true;
-        }
-
-        let num_type: id = msg_send![value, objCType];
-        if num_type == nil {
-            return true;
-        }
-
-        // NSNumber's objCType method returns one of these strings depending on the size:
-        // q = quad (long long), l = long, i = int, s = short.
-        // This is done to reject booleans, which are NSNumbers with an objCType of "c", but macOS
-        // does not treat them the same as an integer 0 or 1 for this setting, it just ignores it.
-        let int_specifiers: [&[u8]; 4] = [b"q", b"l", b"i", b"s"];
-        if !int_specifiers.contains(&CStr::from_ptr(num_type as *const i8).to_bytes()) {
-            return true;
-        }
-
-        let smoothing: id = msg_send![value, integerValue];
-        smoothing as i64 != 0
-    })
-});
