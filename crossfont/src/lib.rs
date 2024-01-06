@@ -1,28 +1,8 @@
-//! Compatibility layer for different font engines.
-//!
-//! CoreText is used on macOS.
-//! DirectWrite is used on Windows.
-//! FreeType is used everywhere else.
-
-#![deny(clippy::all, clippy::if_not_else, clippy::enum_glob_use)]
-
 use std::fmt::{self, Display, Formatter};
 use std::ops::{Add, Mul};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-#[cfg(not(any(target_os = "macos", windows)))]
-pub mod ft;
-#[cfg(not(any(target_os = "macos", windows)))]
-pub use ft::FreeTypeRasterizer as Rasterizer;
-
-#[cfg(windows)]
-pub mod directwrite;
-#[cfg(windows)]
-pub use directwrite::DirectWriteRasterizer as Rasterizer;
-
-#[cfg(target_os = "macos")]
 pub mod darwin;
-#[cfg(target_os = "macos")]
 pub use darwin::CoreTextRasterizer as Rasterizer;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

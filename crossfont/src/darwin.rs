@@ -19,8 +19,8 @@ use core_graphics::context::CGContext;
 use core_graphics::font::CGGlyph;
 use core_graphics::geometry::{CGPoint, CGRect, CGSize};
 use core_text::font::{
-    cascade_list_for_languages as ct_cascade_list_for_languages,
-    new_from_descriptor as ct_new_from_descriptor, new_from_name, CTFont,
+    cascade_list_for_languages as ct_cascade_list_for_languages, new_from_descriptor,
+    new_from_name, CTFont,
 };
 use core_text::font_collection::create_for_family;
 use core_text::font_descriptor::{
@@ -67,7 +67,7 @@ impl Descriptor {
 
     /// Create a Font from this descriptor.
     fn to_font(&self, size: f64, load_fallbacks: bool) -> Font {
-        let ct_font = ct_new_from_descriptor(&self.ct_descriptor, size);
+        let ct_font = new_from_descriptor(&self.ct_descriptor, size);
 
         let fallbacks = if load_fallbacks {
             // TODO fixme, hardcoded en for english.
@@ -480,50 +480,6 @@ impl Font {
             u32::from(glyphs[0])
         } else {
             MISSING_GLYPH_INDEX
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::BitmapBuffer;
-
-    #[test]
-    fn get_descriptors_and_build_font() {
-        let list = super::descriptors_for_family("Menlo");
-        assert!(!list.is_empty());
-        println!("{:?}", list);
-
-        // Check to_font.
-        let fonts = list.iter().map(|desc| desc.to_font(72., false)).collect::<Vec<_>>();
-
-        for font in fonts {
-            // Get a glyph.
-            for character in &['a', 'b', 'c', 'd'] {
-                let glyph_index = font.glyph_index(*character);
-                let glyph = font.get_glyph(*character, glyph_index);
-
-                let buffer = match &glyph.buffer {
-                    BitmapBuffer::Rgb(buffer) | BitmapBuffer::Rgba(buffer) => buffer,
-                };
-
-                // Debug the glyph.. sigh.
-                for row in 0..glyph.height {
-                    for col in 0..glyph.width {
-                        let index = ((glyph.width * 3 * row) + (col * 3)) as usize;
-                        let value = buffer[index];
-                        let c = match value {
-                            0..=50 => ' ',
-                            51..=100 => '.',
-                            101..=150 => '~',
-                            151..=200 => '*',
-                            201..=255 => '#',
-                        };
-                        print!("{}", c);
-                    }
-                    println!();
-                }
-            }
         }
     }
 }
