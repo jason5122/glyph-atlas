@@ -112,16 +112,14 @@ impl Rasterizer {
     }
 
     fn get_font(&mut self, desc: &FontDesc, size: Size) -> Result<Font, Error> {
-        match desc.style {
-            Style::Specific(ref style) => self.get_specific_face(desc, style, size),
-        }
+        self.get_specific_face(desc, &desc.style, size)
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FontDesc {
     name: String,
-    style: Style,
+    style: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -137,18 +135,12 @@ pub enum Weight {
     Bold,
 }
 
-/// Style of font.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Style {
-    Specific(String),
-}
-
 impl FontDesc {
-    pub fn new<S>(name: S, style: Style) -> FontDesc
+    pub fn new<S>(name: S, style: S) -> FontDesc
     where
         S: Into<String>,
     {
-        FontDesc { name: name.into(), style }
+        FontDesc { name: name.into(), style: style.into() }
     }
 }
 

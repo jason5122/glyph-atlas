@@ -1,10 +1,8 @@
 use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
-use crossfont::Size as FontSize;
-use crossfont::{
-    FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph, Rasterizer, Style,
-};
+use crossfont::Size;
+use crossfont::{FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph, Rasterizer};
 use unicode_width::UnicodeWidthChar;
 
 use crate::gl::types::*;
@@ -41,13 +39,12 @@ pub struct GlyphCache {
 impl GlyphCache {
     pub fn new(mut rasterizer: Rasterizer) -> GlyphCache {
         let font_name = String::from("Source Code Pro");
-        let font_size = FontSize::new(16.);
+        let font_size = Size::new(16.);
 
-        let regular_desc = FontDesc::new(&font_name, Style::Specific(String::from("Regular")));
-        let bold_desc = FontDesc::new(&font_name, Style::Specific(String::from("Bold")));
-        let italic_desc = FontDesc::new(&font_name, Style::Specific(String::from("Italic")));
-        let bold_italic_desc =
-            FontDesc::new(&font_name, Style::Specific(String::from("Bold Italic")));
+        let regular_desc = FontDesc::new(&font_name, &String::from("Regular"));
+        let bold_desc = FontDesc::new(&font_name, &String::from("Bold"));
+        let italic_desc = FontDesc::new(&font_name, &String::from("Italic"));
+        let bold_italic_desc = FontDesc::new(&font_name, &String::from("Bold Italic"));
 
         let font_key = rasterizer.load_font(&regular_desc, font_size).unwrap();
         let bold_key = rasterizer.load_font(&bold_desc, font_size).unwrap();
