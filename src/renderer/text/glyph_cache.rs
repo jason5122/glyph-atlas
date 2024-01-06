@@ -2,7 +2,7 @@ use std::collections::hash_map::RandomState;
 use std::collections::HashMap;
 
 use crossfont::Size;
-use crossfont::{FontDesc, FontKey, GlyphKey, Metrics, Rasterize, RasterizedGlyph, Rasterizer};
+use crossfont::{FontDesc, FontKey, GlyphKey, Metrics, RasterizedGlyph, Rasterizer};
 use unicode_width::UnicodeWidthChar;
 
 use crate::gl::types::*;

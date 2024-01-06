@@ -5,7 +5,7 @@ use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
 use glutin::prelude::*;
 use glutin::surface::{Surface, WindowSurface};
 
-use crossfont::{Rasterize, Rasterizer};
+use crossfont::Rasterizer;
 
 use raw_window_handle::HasRawWindowHandle;
 

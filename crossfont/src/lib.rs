@@ -39,18 +39,17 @@ pub struct Rasterizer {
     device_pixel_ratio: f32,
 }
 
-impl Rasterize for Rasterizer {
-    fn new(device_pixel_ratio: f32) -> Rasterizer {
+impl Rasterizer {
+    pub fn new(device_pixel_ratio: f32) -> Rasterizer {
         Rasterizer { fonts: HashMap::new(), keys: HashMap::new(), device_pixel_ratio }
     }
 
     /// Get metrics for font specified by FontKey.
-    fn metrics(&self, key: FontKey, _size: Size) -> Metrics {
-        let font = self.fonts.get(&key).ok_or(Error::UnknownFontKey).unwrap();
-        font.metrics()
+    pub fn metrics(&self, key: FontKey, _size: Size) -> Metrics {
+        self.fonts.get(&key).unwrap().metrics()
     }
 
-    fn load_font(&mut self, desc: &FontDesc, size: Size) -> Result<FontKey, Error> {
+    pub fn load_font(&mut self, desc: &FontDesc, size: Size) -> Result<FontKey, Error> {
         let scaled_size = Size::new(size.as_f32_pts() * self.device_pixel_ratio);
         self.keys.get(&(desc.to_owned(), scaled_size)).map(|k| Ok(*k)).unwrap_or_else(|| {
             let font = self.get_font(desc, size)?;
@@ -64,7 +63,7 @@ impl Rasterize for Rasterizer {
     }
 
     /// Get rasterized glyph for given glyph key.
-    fn get_glyph(&mut self, glyph: GlyphKey) -> Result<RasterizedGlyph, Error> {
+    pub fn get_glyph(&mut self, glyph: GlyphKey) -> Result<RasterizedGlyph, Error> {
         // Get loaded font.
         let font = self.fonts.get(&glyph.font_key).ok_or(Error::UnknownFontKey)?;
 
@@ -86,21 +85,10 @@ impl Rasterize for Rasterizer {
         }
     }
 
-    fn update_dpr(&mut self, device_pixel_ratio: f32) {
-        self.device_pixel_ratio = device_pixel_ratio;
-    }
-}
-
-impl Rasterizer {
-    fn get_specific_face(
-        &mut self,
-        desc: &FontDesc,
-        style: &str,
-        size: Size,
-    ) -> Result<Font, Error> {
+    fn get_font(&mut self, desc: &FontDesc, size: Size) -> Result<Font, Error> {
         let descriptors = descriptors_for_family(&desc.name[..]);
         for descriptor in descriptors {
-            if descriptor.style_name == style {
+            if descriptor.style_name == desc.style {
                 // Found the font we want.
                 let scaled_size = f64::from(size.as_f32_pts()) * f64::from(self.device_pixel_ratio);
                 let font = descriptor.to_font(scaled_size, true);
@@ -109,10 +97,6 @@ impl Rasterizer {
         }
 
         Err(Error::FontNotFound(desc.to_owned()))
-    }
-
-    fn get_font(&mut self, desc: &FontDesc, size: Size) -> Result<Font, Error> {
-        self.get_specific_face(desc, &desc.style, size)
     }
 }
 
@@ -254,25 +238,6 @@ pub enum Error {
 
     /// Requested an operation with a FontKey that isn't known to the rasterizer.
     UnknownFontKey,
-}
-
-pub trait Rasterize {
-    /// Create a new Rasterizer.
-    fn new(device_pixel_ratio: f32) -> Self
-    where
-        Self: Sized;
-
-    /// Get `Metrics` for the given `FontKey`.
-    fn metrics(&self, _: FontKey, _: Size) -> Metrics;
-
-    /// Load the font described by `FontDesc` and `Size`.
-    fn load_font(&mut self, _: &FontDesc, _: Size) -> Result<FontKey, Error>;
-
-    /// Rasterize the glyph described by `GlyphKey`..
-    fn get_glyph(&mut self, _: GlyphKey) -> Result<RasterizedGlyph, Error>;
-
-    /// Update the Rasterizer's DPI factor.
-    fn update_dpr(&mut self, device_pixel_ratio: f32);
 }
 
 /// A font.
