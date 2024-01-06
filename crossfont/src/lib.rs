@@ -39,16 +39,15 @@ pub struct Rasterizer {
     device_pixel_ratio: f32,
 }
 
-impl crate::Rasterize for Rasterizer {
-    fn new(device_pixel_ratio: f32) -> Result<Rasterizer, Error> {
-        Ok(Rasterizer { fonts: HashMap::new(), keys: HashMap::new(), device_pixel_ratio })
+impl Rasterize for Rasterizer {
+    fn new(device_pixel_ratio: f32) -> Rasterizer {
+        Rasterizer { fonts: HashMap::new(), keys: HashMap::new(), device_pixel_ratio }
     }
 
     /// Get metrics for font specified by FontKey.
-    fn metrics(&self, key: FontKey, _size: Size) -> Result<Metrics, Error> {
-        let font = self.fonts.get(&key).ok_or(Error::UnknownFontKey)?;
-
-        Ok(font.metrics())
+    fn metrics(&self, key: FontKey, _size: Size) -> Metrics {
+        let font = self.fonts.get(&key).ok_or(Error::UnknownFontKey).unwrap();
+        font.metrics()
     }
 
     fn load_font(&mut self, desc: &FontDesc, size: Size) -> Result<FontKey, Error> {
@@ -85,10 +84,6 @@ impl crate::Rasterize for Rasterizer {
         } else {
             Ok(glyph)
         }
-    }
-
-    fn kerning(&mut self, _left: GlyphKey, _right: GlyphKey) -> (f32, f32) {
-        (0., 0.)
     }
 
     fn update_dpr(&mut self, device_pixel_ratio: f32) {
@@ -318,12 +313,12 @@ pub enum Error {
 
 pub trait Rasterize {
     /// Create a new Rasterizer.
-    fn new(device_pixel_ratio: f32) -> Result<Self, Error>
+    fn new(device_pixel_ratio: f32) -> Self
     where
         Self: Sized;
 
     /// Get `Metrics` for the given `FontKey`.
-    fn metrics(&self, _: FontKey, _: Size) -> Result<Metrics, Error>;
+    fn metrics(&self, _: FontKey, _: Size) -> Metrics;
 
     /// Load the font described by `FontDesc` and `Size`.
     fn load_font(&mut self, _: &FontDesc, _: Size) -> Result<FontKey, Error>;
@@ -333,9 +328,6 @@ pub trait Rasterize {
 
     /// Update the Rasterizer's DPI factor.
     fn update_dpr(&mut self, device_pixel_ratio: f32);
-
-    /// Kerning between two characters.
-    fn kerning(&mut self, left: GlyphKey, right: GlyphKey) -> (f32, f32);
 }
 
 /// A font.

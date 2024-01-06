@@ -74,7 +74,7 @@ pub struct Display {
 
 impl Display {
     pub fn new(window: Window, gl_context: NotCurrentContext) -> Display {
-        let rasterizer = Rasterizer::new(window.scale_factor() as f32).unwrap();
+        let rasterizer = Rasterizer::new(window.scale_factor() as f32);
 
         let mut glyph_cache = GlyphCache::new(rasterizer);
 

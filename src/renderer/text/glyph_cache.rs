@@ -54,7 +54,7 @@ impl GlyphCache {
         let italic_key = rasterizer.load_font(&italic_desc, font_size).unwrap();
         let bold_italic_key = rasterizer.load_font(&bold_italic_desc, font_size).unwrap();
 
-        let metrics = rasterizer.metrics(font_key, font_size).unwrap();
+        let metrics = rasterizer.metrics(font_key, font_size);
 
         Self {
             cache: Default::default(),
