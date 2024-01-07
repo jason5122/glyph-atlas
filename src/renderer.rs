@@ -159,27 +159,6 @@ impl Glsl3Renderer {
         }
     }
 
-    pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph) {
-        if self.instances.len() == 0 {
-            self.tex = glyph.tex_id;
-        }
-
-        self.instances.push(InstanceData {
-            col: cell.column as u16,
-            row: cell.line as u16,
-
-            top: glyph.top,
-            left: glyph.left,
-            width: glyph.width,
-            height: glyph.height,
-
-            uv_bot: glyph.uv_bot,
-            uv_left: glyph.uv_left,
-            uv_width: glyph.uv_width,
-            uv_height: glyph.uv_height,
-        });
-    }
-
     pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
         let mut cells = Vec::new();
 
@@ -223,11 +202,27 @@ impl Glsl3Renderer {
                 GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
             let glyph = glyph_cache.get(glyph_key, self);
-            self.add_item(&cell, &glyph);
-        }
-    }
 
-    pub fn render_batch(&mut self) {
+            if self.instances.len() == 0 {
+                self.tex = glyph.tex_id;
+            }
+
+            self.instances.push(InstanceData {
+                col: cell.column as u16,
+                row: cell.line as u16,
+
+                top: glyph.top,
+                left: glyph.left,
+                width: glyph.width,
+                height: glyph.height,
+
+                uv_bot: glyph.uv_bot,
+                uv_left: glyph.uv_left,
+                uv_width: glyph.uv_width,
+                uv_height: glyph.uv_height,
+            });
+        }
+
         unsafe {
             gl::BufferSubData(
                 gl::ARRAY_BUFFER,

@@ -136,7 +136,6 @@ impl Display {
         self.make_current();
 
         self.renderer.draw_cells(&size_info, &mut self.glyph_cache);
-        self.renderer.render_batch();
 
         // Clearing debug highlights from the previous frame requires full redraw.
         let _ = match (self.surface.deref(), &self.context) {
