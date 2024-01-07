@@ -12,11 +12,9 @@ use crate::gl;
 use crate::gl::types::*;
 
 mod atlas;
-mod glyph_cache;
 pub mod platform;
 
 use atlas::{Atlas, ATLAS_SIZE};
-pub use glyph_cache::Glyph;
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
