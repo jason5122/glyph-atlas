@@ -115,12 +115,8 @@ impl Glsl3Renderer {
             // UV offset.
             add_attr!(4, gl::FLOAT, f32);
 
-            // Color and cell flags.
-            //
-            // These are packed together because of an OpenGL driver issue on macOS, which caused a
-            // `vec3(u8)` text color and a `u8` cell flags to increase the rendering time by a
-            // huge margin.
-            add_attr!(4, gl::UNSIGNED_BYTE, u8);
+            // Color flags.
+            add_attr!(3, gl::UNSIGNED_BYTE, u8);
 
             // Cleanup.
             gl::BindVertexArray(0);
@@ -152,21 +148,11 @@ impl Glsl3Renderer {
             "assert_eq!(iterator.next(), Some(&2));",
             "assert_eq!(iterator.next(), Some(&4));",
             "assert_eq!(iterator.next(), None);",
-            "huh 🤨 🤨 🤨",
         ];
         let fg = Rgb::new(0x33, 0x33, 0x33);
-        let bg = Rgb::new(0xfc, 0xfd, 0xfd);
         for (i, s) in strs.iter().enumerate() {
             for (column, character) in s.chars().enumerate() {
-                let cell = RenderableCell {
-                    character,
-                    line: 10 + i,
-                    column,
-                    bg_alpha: 1.0,
-                    fg,
-                    bg,
-                    font_key: 0,
-                };
+                let cell = RenderableCell { character, line: 10 + i, column, fg, font_key: 0 };
                 cells.push(cell);
             }
         }
@@ -295,7 +281,5 @@ pub struct RenderableCell {
     pub line: usize,
     pub column: usize,
     pub fg: Rgb,
-    pub bg: Rgb,
-    pub bg_alpha: f32,
     pub font_key: usize,
 }

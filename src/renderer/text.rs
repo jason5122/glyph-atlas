@@ -39,7 +39,6 @@ pub struct InstanceData {
     r: u8,
     g: u8,
     b: u8,
-    cell_flags: u8,
 }
 
 #[derive(Debug, Default)]
@@ -71,7 +70,6 @@ impl Batch {
             r: cell.fg.r,
             g: cell.fg.g,
             b: cell.fg.b,
-            cell_flags: glyph.multicolor as u8,
         });
     }
 

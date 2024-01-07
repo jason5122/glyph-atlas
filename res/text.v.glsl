@@ -12,10 +12,9 @@ layout(location = 2) in vec4 uv;
 // Text foreground rgb packed together with cell flags. textColor.a
 // are the bitflags; consult RenderingGlyphFlags in renderer/mod.rs
 // for the possible values.
-layout(location = 3) in vec4 textColor;
+layout(location = 3) in vec3 textColor;
 
 out vec2 TexCoords;
-flat out vec4 fg;
 
 // Terminal properties
 uniform vec2 cellDim;
@@ -32,8 +31,6 @@ void main() {
 
     // Position of cell from top-left
     vec2 cellPosition = cellDim * gridCoords;
-
-    fg = vec4(textColor.rgb / 255.0, textColor.a);
 
     vec2 glyphSize = glyph.zw;
     vec2 glyphOffset = glyph.xy;
