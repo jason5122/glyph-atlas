@@ -233,10 +233,10 @@ impl Glsl3Renderer {
             );
 
             // Bind texture if necessary.
-            if self.active_tex != self.tex {
-                gl::BindTexture(gl::TEXTURE_2D, self.tex);
-                self.active_tex = self.tex;
-            }
+            // if self.active_tex != self.tex {
+            gl::BindTexture(gl::TEXTURE_2D, self.tex);
+            //     self.active_tex = self.tex;
+            // }
 
             gl::DrawElementsInstanced(
                 gl::TRIANGLES,

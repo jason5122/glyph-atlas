@@ -210,11 +210,6 @@ pub struct RasterizedGlyph {
 pub struct Metrics {
     pub average_advance: f64,
     pub line_height: f64,
-    pub descent: f32,
-    pub underline_position: f32,
-    pub underline_thickness: f32,
-    pub strikeout_position: f32,
-    pub strikeout_thickness: f32,
 }
 
 /// Errors occuring when using the rasterizer.
@@ -248,22 +243,7 @@ impl Font {
         let leading = self.ct_font.leading().round() as f64;
         let line_height = ascent + descent + leading;
 
-        // Strikeout and underline metrics.
-        // CoreText doesn't provide strikeout so we provide our own.
-        let underline_position = self.ct_font.underline_position() as f32;
-        let underline_thickness = self.ct_font.underline_thickness() as f32;
-        let strikeout_position = (line_height / 2. - descent) as f32;
-        let strikeout_thickness = underline_thickness;
-
-        Metrics {
-            average_advance,
-            line_height,
-            descent: -(descent as f32),
-            underline_position,
-            underline_thickness,
-            strikeout_position,
-            strikeout_thickness,
-        }
+        Metrics { average_advance, line_height }
     }
 
     fn is_colored(&self) -> bool {

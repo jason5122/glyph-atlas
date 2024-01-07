@@ -24,19 +24,6 @@ pub struct SizeInfo<T = f32> {
     pub padding_y: T,
 }
 
-impl From<SizeInfo<f32>> for SizeInfo<u32> {
-    fn from(size_info: SizeInfo<f32>) -> Self {
-        Self {
-            width: size_info.width as u32,
-            height: size_info.height as u32,
-            cell_width: size_info.cell_width as u32,
-            cell_height: size_info.cell_height as u32,
-            padding_x: size_info.padding_x as u32,
-            padding_y: size_info.padding_y as u32,
-        }
-    }
-}
-
 impl SizeInfo<f32> {
     pub fn new(
         width: f32,
@@ -85,16 +72,22 @@ impl Display {
         let regular_desc = FontDesc::new(&font_name, &String::from("Regular"));
         let font_key = rasterizer.load_font(&regular_desc, font_size).unwrap();
 
-        let offset_x = f64::from(1);
-        let offset_y = f64::from(2);
+        let offset_x = 1 as f64;
+        let offset_y = 2 as f64;
         let metrics = rasterizer.metrics(font_key, font_size);
+        println!(
+            "average_advance = {}, line_height = {}",
+            metrics.average_advance, metrics.line_height
+        );
         let cell_width = (metrics.average_advance + offset_x).floor().max(1.) as f32;
         let cell_height = (metrics.line_height + offset_y).floor().max(1.) as f32;
+        println!("cell_width = {}, cell_height = {}", cell_width, cell_height);
 
         // Create the GL surface to draw into.
+        let viewport_size = window.inner_size();
         let surface = renderer::platform::create_gl_surface(
             &gl_context,
-            window.inner_size(),
+            viewport_size,
             window.raw_window_handle(),
         );
 
@@ -102,17 +95,14 @@ impl Display {
 
         let renderer = Glsl3Renderer::new(&context);
 
-        let padding = (5. * (window.scale_factor() as f32), 5. * (window.scale_factor() as f32));
-        let viewport_size = window.inner_size();
-
         // Create new size with at least one column and row.
         let size_info = SizeInfo::new(
             viewport_size.width as f32,
             viewport_size.height as f32,
             cell_width,
             cell_height,
-            padding.0,
-            padding.1,
+            5. * (window.scale_factor() as f32),
+            5. * (window.scale_factor() as f32),
         );
 
         // Update OpenGL projection.
