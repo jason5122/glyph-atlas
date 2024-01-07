@@ -379,7 +379,6 @@ dependencies = [
 name = "glyph-atlas"
 version = "0.1.0"
 dependencies = [
- "bitflags 2.4.0",
  "crossfont",
  "gl_generator",
  "glutin",

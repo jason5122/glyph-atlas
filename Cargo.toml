@@ -10,7 +10,6 @@ edition = "2021"
 rust-version = "1.65.0"
 
 [dependencies]
-bitflags = "2.2.1"
 crossfont = { path = "crossfont" }
 glutin = { version = "0.30.4" }
 log = { version = "0.4", features = ["std"] }

@@ -1,7 +1,5 @@
 use std::mem::size_of;
 
-use bitflags::bitflags;
-
 use crate::gl;
 use crate::gl::types::*;
 use crate::renderer::RenderableCell;
@@ -10,15 +8,6 @@ pub mod atlas;
 pub mod glyph_cache;
 
 pub use glyph_cache::{Glyph, GlyphCache, LoadGlyph};
-
-// NOTE: These flags must be in sync with their usage in the text.*.glsl shaders.
-bitflags! {
-    #[repr(C)]
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-    struct RenderingGlyphFlags: u8 {
-        const COLORED   = 1;
-    }
-}
 
 static TEXT_SHADER_F: &str = include_str!("../../res/text.f.glsl");
 static TEXT_SHADER_V: &str = include_str!("../../res/text.v.glsl");
@@ -46,19 +35,11 @@ pub struct InstanceData {
     uv_width: f32,
     uv_height: f32,
 
-    // Color.
+    // Color and cell flags.
     r: u8,
     g: u8,
     b: u8,
-
-    // Cell flags like multicolor or fullwidth character.
     cell_flags: u8,
-
-    // Background color.
-    bg_r: u8,
-    bg_g: u8,
-    bg_b: u8,
-    bg_a: u8,
 }
 
 #[derive(Debug, Default)]
@@ -91,11 +72,6 @@ impl Batch {
             g: cell.fg.g,
             b: cell.fg.b,
             cell_flags: glyph.multicolor as u8,
-
-            bg_r: cell.bg.r,
-            bg_g: cell.bg.g,
-            bg_b: cell.bg.b,
-            bg_a: (cell.bg_alpha * 255.0) as u8,
         });
     }
 

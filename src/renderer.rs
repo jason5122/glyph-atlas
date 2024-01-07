@@ -122,9 +122,6 @@ impl Glsl3Renderer {
             // huge margin.
             add_attr!(4, gl::UNSIGNED_BYTE, u8);
 
-            // Background color.
-            add_attr!(4, gl::UNSIGNED_BYTE, u8);
-
             // Cleanup.
             gl::BindVertexArray(0);
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);

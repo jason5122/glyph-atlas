@@ -14,17 +14,12 @@ layout(location = 2) in vec4 uv;
 // for the possible values.
 layout(location = 3) in vec4 textColor;
 
-// Background color.
-layout(location = 4) in vec4 backgroundColor;
-
 out vec2 TexCoords;
 flat out vec4 fg;
 
 // Terminal properties
 uniform vec2 cellDim;
 uniform vec4 projection;
-
-#define WIDE_CHAR 2
 
 void main() {
     vec2 projectionOffset = projection.xy;
