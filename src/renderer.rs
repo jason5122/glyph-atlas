@@ -160,7 +160,15 @@ impl Glsl3Renderer {
     }
 
     pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
-        let mut cells = Vec::new();
+        unsafe {
+            gl::UseProgram(self.shader_program);
+            gl::Uniform2f(self.u_cell_dim, size_info.cell_width, size_info.cell_height);
+
+            gl::BindVertexArray(self.vao);
+            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
+            gl::ActiveTexture(gl::TEXTURE0);
+        }
 
         let strs = vec![
             "E",
@@ -172,55 +180,35 @@ impl Glsl3Renderer {
             "assert_eq!(iterator.next(), Some(&4));",
             "assert_eq!(iterator.next(), None);",
         ];
+
         for (i, s) in strs.iter().enumerate() {
             for (column, character) in s.chars().enumerate() {
-                let cell = RenderableCell { character, line: 10 + i, column, font_key: 0 };
-                cells.push(cell);
+                let line = 10 + i;
+                let font_key = glyph_cache.font_key;
+
+                let glyph_key = GlyphKey { font_key, size: glyph_cache.font_size, character };
+
+                let glyph = glyph_cache.get(glyph_key, self);
+
+                if self.instances.len() == 0 {
+                    self.tex = glyph.tex_id;
+                }
+
+                self.instances.push(InstanceData {
+                    col: column as u16,
+                    row: line as u16,
+
+                    top: glyph.top,
+                    left: glyph.left,
+                    width: glyph.width,
+                    height: glyph.height,
+
+                    uv_bot: glyph.uv_bot,
+                    uv_left: glyph.uv_left,
+                    uv_width: glyph.uv_width,
+                    uv_height: glyph.uv_height,
+                });
             }
-        }
-
-        unsafe {
-            gl::UseProgram(self.shader_program);
-            gl::Uniform2f(self.u_cell_dim, size_info.cell_width, size_info.cell_height);
-
-            gl::BindVertexArray(self.vao);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
-            gl::ActiveTexture(gl::TEXTURE0);
-        }
-
-        for cell in cells {
-            let font_key = match cell.font_key {
-                0 => glyph_cache.font_key,
-                1 => glyph_cache.bold_key,
-                2 => glyph_cache.italic_key,
-                3 => glyph_cache.bold_italic_key,
-                _ => glyph_cache.font_key,
-            };
-
-            let glyph_key =
-                GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
-
-            let glyph = glyph_cache.get(glyph_key, self);
-
-            if self.instances.len() == 0 {
-                self.tex = glyph.tex_id;
-            }
-
-            self.instances.push(InstanceData {
-                col: cell.column as u16,
-                row: cell.line as u16,
-
-                top: glyph.top,
-                left: glyph.left,
-                width: glyph.width,
-                height: glyph.height,
-
-                uv_bot: glyph.uv_bot,
-                uv_left: glyph.uv_left,
-                uv_width: glyph.uv_width,
-                uv_height: glyph.uv_height,
-            });
         }
 
         unsafe {
@@ -230,17 +218,13 @@ impl Glsl3Renderer {
                 (self.instances.len() * size_of::<InstanceData>()) as isize,
                 self.instances.as_ptr() as *const _,
             );
-        }
 
-        // Bind texture if necessary.
-        if self.active_tex != self.tex {
-            unsafe {
+            // Bind texture if necessary.
+            if self.active_tex != self.tex {
                 gl::BindTexture(gl::TEXTURE_2D, self.tex);
+                self.active_tex = self.tex;
             }
-            self.active_tex = self.tex;
-        }
 
-        unsafe {
             gl::DrawElementsInstanced(
                 gl::TRIANGLES,
                 6,
@@ -297,13 +281,6 @@ impl LoadGlyph for Glsl3Renderer {
             rasterized,
         )
     }
-}
-
-pub struct RenderableCell {
-    pub character: char,
-    pub line: usize,
-    pub column: usize,
-    pub font_key: usize,
 }
 
 struct Shader(GLuint);
