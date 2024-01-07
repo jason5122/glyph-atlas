@@ -16,7 +16,7 @@ use text::atlas::{Atlas, ATLAS_SIZE};
 pub mod platform;
 pub mod text;
 
-pub use text::{Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, Shader};
+pub use text::{Batch, Glyph, GlyphCache, InstanceData, LoadGlyph};
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
@@ -286,4 +286,30 @@ pub struct RenderableCell {
     pub line: usize,
     pub column: usize,
     pub font_key: usize,
+}
+
+struct Shader(GLuint);
+
+impl Shader {
+    fn new(kind: GLenum, source: &'static str) -> Self {
+        let mut sources = Vec::<*const GLchar>::with_capacity(3);
+        let mut lengthes = Vec::<GLint>::with_capacity(3);
+
+        sources.push(source.as_ptr().cast());
+        lengthes.push(source.len() as GLint);
+
+        let shader = unsafe { Self(gl::CreateShader(kind)) };
+
+        unsafe {
+            gl::ShaderSource(
+                shader.0,
+                lengthes.len() as GLint,
+                sources.as_ptr().cast(),
+                lengthes.as_ptr(),
+            );
+            gl::CompileShader(shader.0);
+        }
+
+        shader
+    }
 }

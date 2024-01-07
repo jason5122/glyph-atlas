@@ -1,6 +1,5 @@
 use std::mem::size_of;
 
-use crate::gl;
 use crate::gl::types::*;
 use crate::renderer::RenderableCell;
 
@@ -70,32 +69,5 @@ impl Batch {
     #[inline]
     pub fn size(&self) -> usize {
         self.len() * size_of::<InstanceData>()
-    }
-}
-
-#[derive(Debug)]
-pub struct Shader(pub GLuint);
-
-impl Shader {
-    pub fn new(kind: GLenum, source: &'static str) -> Self {
-        let mut sources = Vec::<*const GLchar>::with_capacity(3);
-        let mut lengthes = Vec::<GLint>::with_capacity(3);
-
-        sources.push(source.as_ptr().cast());
-        lengthes.push(source.len() as GLint);
-
-        let shader = unsafe { Self(gl::CreateShader(kind)) };
-
-        unsafe {
-            gl::ShaderSource(
-                shader.0,
-                lengthes.len() as GLint,
-                sources.as_ptr().cast(),
-                lengthes.as_ptr(),
-            );
-            gl::CompileShader(shader.0);
-        }
-
-        shader
     }
 }
