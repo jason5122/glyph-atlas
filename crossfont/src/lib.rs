@@ -382,6 +382,11 @@ impl Font {
                 cg_context.bytes_per_row(),
                 rasterized_pixels.len()
             );
+
+            println!(
+                "RGB = {} {} {}",
+                rasterized_pixels[2], rasterized_pixels[1], rasterized_pixels[0]
+            );
         }
 
         RasterizedGlyph {
