@@ -23,6 +23,7 @@ const BATCH_MAX: usize = 0x1_0000;
 
 #[derive(Debug)]
 pub struct Glsl3Renderer {
+    shader_program: GLuint,
     program: TextShaderProgram,
     vao: GLuint,
     ebo: GLuint,
@@ -115,9 +116,6 @@ impl Glsl3Renderer {
             // UV offset.
             add_attr!(4, gl::FLOAT, f32);
 
-            // Color flags.
-            add_attr!(3, gl::UNSIGNED_BYTE, u8);
-
             // Cleanup.
             gl::BindVertexArray(0);
             gl::BindBuffer(gl::ARRAY_BUFFER, 0);
@@ -125,6 +123,7 @@ impl Glsl3Renderer {
         }
 
         Self {
+            shader_program: unsafe { gl::CreateProgram() },
             program,
             vao,
             ebo,
@@ -149,10 +148,9 @@ impl Glsl3Renderer {
             "assert_eq!(iterator.next(), Some(&4));",
             "assert_eq!(iterator.next(), None);",
         ];
-        let fg = Rgb::new(0x33, 0x33, 0x33);
         for (i, s) in strs.iter().enumerate() {
             for (column, character) in s.chars().enumerate() {
-                let cell = RenderableCell { character, line: 10 + i, column, fg, font_key: 0 };
+                let cell = RenderableCell { character, line: 10 + i, column, font_key: 0 };
                 cells.push(cell);
             }
         }
@@ -262,24 +260,9 @@ impl LoadGlyph for Glsl3Renderer {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct Rgb {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-}
-
-impl Rgb {
-    #[inline]
-    pub const fn new(r: u8, g: u8, b: u8) -> Self {
-        Self { r, g, b }
-    }
-}
-
 pub struct RenderableCell {
     pub character: char,
     pub line: usize,
     pub column: usize,
-    pub fg: Rgb,
     pub font_key: usize,
 }

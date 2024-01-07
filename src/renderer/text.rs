@@ -19,26 +19,17 @@ pub struct InstanceData {
     col: u16,
     row: u16,
 
-    // Glyph offset.
+    // Glyph offset and size.
     left: i16,
     top: i16,
-
-    // Glyph size.
     width: i16,
     height: i16,
 
-    // UV offset.
+    // UV offset and scale.
     uv_left: f32,
     uv_bot: f32,
-
-    // uv scale.
     uv_width: f32,
     uv_height: f32,
-
-    // Color and cell flags.
-    r: u8,
-    g: u8,
-    b: u8,
 }
 
 #[derive(Debug, Default)]
@@ -66,10 +57,6 @@ impl Batch {
             uv_left: glyph.uv_left,
             uv_width: glyph.uv_width,
             uv_height: glyph.uv_height,
-
-            r: cell.fg.r,
-            g: cell.fg.g,
-            b: cell.fg.b,
         });
     }
 
