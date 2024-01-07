@@ -76,18 +76,10 @@ impl Batch {
     }
 }
 
-/// Text drawing program.
-///
-/// Uniforms are prefixed with "u", and vertex attributes are prefixed with "a".
 #[derive(Debug)]
 pub struct TextShaderProgram {
-    /// Shader program.
-    pub program: ShaderProgram,
-
-    /// Projection scale and offset uniform.
+    pub id: GLuint,
     pub u_projection: GLint,
-
-    /// Cell dimensions (pixels).
     pub u_cell_dim: GLint,
 }
 
@@ -100,55 +92,31 @@ impl TextShaderProgram {
             };
         }
 
-        let program = ShaderProgram::new(None, TEXT_SHADER_V, TEXT_SHADER_F);
         unsafe {
+            let id = gl::CreateProgram();
+            let vertex_shader = Shader::new(gl::VERTEX_SHADER, TEXT_SHADER_V);
+            let fragment_shader = Shader::new(gl::FRAGMENT_SHADER, TEXT_SHADER_F);
+
+            gl::AttachShader(id, vertex_shader.0);
+            gl::AttachShader(id, fragment_shader.0);
+            gl::LinkProgram(id);
+
             Self {
-                u_projection: gl::GetUniformLocation(program.0, cstr!("projection").as_ptr()),
-                u_cell_dim: gl::GetUniformLocation(program.0, cstr!("cellDim").as_ptr()),
-                program,
+                id,
+                u_projection: gl::GetUniformLocation(id, cstr!("projection").as_ptr()),
+                u_cell_dim: gl::GetUniformLocation(id, cstr!("cellDim").as_ptr()),
             }
         }
     }
 }
 
-/// A wrapper for a shader program id, with automatic lifetime management.
-#[derive(Debug)]
-pub struct ShaderProgram(pub GLuint);
-
-impl ShaderProgram {
-    pub fn new(
-        shader_header: Option<&str>,
-        vertex_shader: &'static str,
-        fragment_shader: &'static str,
-    ) -> Self {
-        let vertex_shader = Shader::new(shader_header, gl::VERTEX_SHADER, vertex_shader);
-        let fragment_shader = Shader::new(shader_header, gl::FRAGMENT_SHADER, fragment_shader);
-
-        let program = unsafe { Self(gl::CreateProgram()) };
-
-        unsafe {
-            gl::AttachShader(program.0, vertex_shader.0);
-            gl::AttachShader(program.0, fragment_shader.0);
-            gl::LinkProgram(program.0);
-        }
-
-        program
-    }
-}
-
-/// A wrapper for a shader id, with automatic lifetime management.
 #[derive(Debug)]
 struct Shader(GLuint);
 
 impl Shader {
-    fn new(shader_header: Option<&str>, kind: GLenum, source: &'static str) -> Self {
+    fn new(kind: GLenum, source: &'static str) -> Self {
         let mut sources = Vec::<*const GLchar>::with_capacity(3);
         let mut lengthes = Vec::<GLint>::with_capacity(3);
-
-        if let Some(shader_header) = shader_header {
-            sources.push(shader_header.as_ptr().cast());
-            lengthes.push(shader_header.len() as GLint);
-        }
 
         sources.push(source.as_ptr().cast());
         lengthes.push(source.len() as GLint);
