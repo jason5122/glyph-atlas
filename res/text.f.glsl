@@ -2,7 +2,6 @@
 
 in vec2 TexCoords;
 flat in vec4 fg;
-flat in vec4 bg;
 
 layout(location = 0, index = 0) out vec4 color;
 layout(location = 0, index = 1) out vec4 alphaMask;

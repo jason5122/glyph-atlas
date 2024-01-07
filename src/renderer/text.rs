@@ -16,8 +16,7 @@ bitflags! {
     #[repr(C)]
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     struct RenderingGlyphFlags: u8 {
-        const COLORED   = 0b0000_0001;
-        const WIDE_CHAR = 0b0000_0010;
+        const COLORED   = 1;
     }
 }
 
@@ -53,7 +52,7 @@ pub struct InstanceData {
     b: u8,
 
     // Cell flags like multicolor or fullwidth character.
-    cell_flags: RenderingGlyphFlags,
+    cell_flags: u8,
 
     // Background color.
     bg_r: u8,
@@ -74,9 +73,6 @@ impl Batch {
             self.tex = glyph.tex_id;
         }
 
-        let mut cell_flags = RenderingGlyphFlags::empty();
-        cell_flags.set(RenderingGlyphFlags::COLORED, glyph.multicolor);
-
         self.instances.push(InstanceData {
             col: cell.column as u16,
             row: cell.line as u16,
@@ -94,7 +90,7 @@ impl Batch {
             r: cell.fg.r,
             g: cell.fg.g,
             b: cell.fg.b,
-            cell_flags,
+            cell_flags: glyph.multicolor as u8,
 
             bg_r: cell.bg.r,
             bg_g: cell.bg.g,

@@ -19,7 +19,6 @@ layout(location = 4) in vec4 backgroundColor;
 
 out vec2 TexCoords;
 flat out vec4 fg;
-flat out vec4 bg;
 
 // Terminal properties
 uniform vec2 cellDim;
@@ -40,17 +39,6 @@ void main() {
     vec2 cellPosition = cellDim * gridCoords;
 
     fg = vec4(textColor.rgb / 255.0, textColor.a);
-    bg = backgroundColor / 255.0;
-
-    float occupiedCells = 1;
-    if ((int(fg.a) >= WIDE_CHAR)) {
-        // Update wide char x dimension so it'll cover the following spacer.
-        occupiedCells = 2;
-
-        // Since we don't perform bitwise operations due to limitations of
-        // the GLES2 renderer,we subtract wide char bits keeping only colored.
-        fg.a = round(fg.a - WIDE_CHAR);
-    }
 
     vec2 glyphSize = glyph.zw;
     vec2 glyphOffset = glyph.xy;
