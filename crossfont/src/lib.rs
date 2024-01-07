@@ -375,11 +375,12 @@ impl Font {
         if face == "Regular" && character == 'E' {
             println!("{} {} {}", family, face, self.ct_font.pt_size());
 
-            println!("rasterized_pixels.len() = {}", rasterized_pixels.len());
+            println!("{}x{}", rasterized_width, rasterized_height);
             println!(
-                "height = {}, bytes_per_row = {}",
+                "height = {}, bytes_per_row = {}, len = {}",
                 cg_context.height(),
-                cg_context.bytes_per_row()
+                cg_context.bytes_per_row(),
+                rasterized_pixels.len()
             );
         }
 
