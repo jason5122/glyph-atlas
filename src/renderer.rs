@@ -29,8 +29,7 @@ pub struct Glsl3Renderer {
     vao: GLuint,
     ebo: GLuint,
     vbo_instance: GLuint,
-    atlas: Vec<Atlas>,
-    current_atlas: usize,
+    atlas: Atlas,
     active_tex: GLuint,
     tex: GLuint,
     instances: Vec<InstanceData>,
@@ -150,8 +149,7 @@ impl Glsl3Renderer {
                 vao,
                 ebo,
                 vbo_instance,
-                atlas: vec![Atlas::new(ATLAS_SIZE)],
-                current_atlas: 0,
+                atlas: Atlas::new(ATLAS_SIZE),
                 active_tex: 0,
                 tex: 0,
                 instances: Vec::new(),
@@ -274,7 +272,7 @@ impl Glsl3Renderer {
 
 impl LoadGlyph for Glsl3Renderer {
     fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
-        self.atlas[self.current_atlas].insert_inner(rasterized, &mut self.active_tex)
+        self.atlas.insert_inner(rasterized, &mut self.active_tex)
     }
 }
 

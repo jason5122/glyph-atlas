@@ -31,28 +31,12 @@ pub const ATLAS_SIZE: i32 = 1024;
 /// ```
 #[derive(Debug)]
 pub struct Atlas {
-    /// Texture id for this atlas.
     id: GLuint,
-
-    /// Width of atlas.
     width: i32,
-
-    /// Height of atlas.
     height: i32,
-
-    /// Left-most free pixel in a row.
-    ///
-    /// This is called the extent because it is the upper bound of used pixels
-    /// in a row.
-    row_extent: i32,
-
-    /// Baseline for glyphs in the current row.
-    row_baseline: i32,
-
-    /// Tallest glyph in current row.
-    ///
-    /// This is used as the advance when end of row is reached.
-    row_tallest: i32,
+    row_extent: i32,   // Left-most free pixel in a row.
+    row_baseline: i32, // Baseline for glyphs in the current row.
+    row_tallest: i32,  // Tallest glyph in current row.
 }
 
 impl Atlas {
