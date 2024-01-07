@@ -1,5 +1,3 @@
-use std::mem::size_of;
-
 use crate::gl::types::*;
 use crate::renderer::RenderableCell;
 
@@ -36,7 +34,7 @@ pub struct Batch {
 
 impl Batch {
     pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph) {
-        if self.len() == 0 {
+        if self.instances.len() == 0 {
             self.tex = glyph.tex_id;
         }
 
@@ -59,15 +57,5 @@ impl Batch {
     #[inline]
     pub fn new() -> Self {
         Self { tex: 0, instances: Vec::new() }
-    }
-
-    #[inline]
-    pub fn len(&self) -> usize {
-        self.instances.len()
-    }
-
-    #[inline]
-    pub fn size(&self) -> usize {
-        self.len() * size_of::<InstanceData>()
     }
 }

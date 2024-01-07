@@ -209,7 +209,7 @@ impl Glsl3Renderer {
             gl::BufferSubData(
                 gl::ARRAY_BUFFER,
                 0,
-                self.batch.size() as isize,
+                (self.batch.instances.len() * size_of::<InstanceData>()) as isize,
                 self.batch.instances.as_ptr() as *const _,
             );
         }
@@ -228,7 +228,7 @@ impl Glsl3Renderer {
                 6,
                 gl::UNSIGNED_INT,
                 ptr::null(),
-                self.batch.len() as GLsizei,
+                self.batch.instances.len() as GLsizei,
             );
         }
     }

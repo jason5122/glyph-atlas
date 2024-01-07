@@ -16,8 +16,8 @@ uniform vec2 cellDim;
 uniform vec4 projection;
 
 void main() {
-    vec2 glyphSize = glyph.zw;
     vec2 glyphOffset = glyph.xy;
+    vec2 glyphSize = glyph.zw;
     vec2 uvOffset = uv.xy;
     vec2 uvSize = uv.zw;
     vec2 projectionOffset = projection.xy;
