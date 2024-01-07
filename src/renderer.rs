@@ -16,7 +16,7 @@ use text::atlas::{Atlas, ATLAS_SIZE};
 pub mod platform;
 pub mod text;
 
-pub use text::{Batch, Glyph, GlyphCache, InstanceData, LoadGlyph};
+pub use text::{Glyph, GlyphCache, LoadGlyph};
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
@@ -32,7 +32,8 @@ pub struct Glsl3Renderer {
     atlas: Vec<Atlas>,
     current_atlas: usize,
     active_tex: GLuint,
-    batch: Batch,
+    tex: GLuint,
+    instances: Vec<InstanceData>,
 }
 
 impl Glsl3Renderer {
@@ -152,9 +153,31 @@ impl Glsl3Renderer {
                 atlas: vec![Atlas::new(ATLAS_SIZE)],
                 current_atlas: 0,
                 active_tex: 0,
-                batch: Batch::new(),
+                tex: 0,
+                instances: Vec::new(),
             }
         }
+    }
+
+    pub fn add_item(&mut self, cell: &RenderableCell, glyph: &Glyph) {
+        if self.instances.len() == 0 {
+            self.tex = glyph.tex_id;
+        }
+
+        self.instances.push(InstanceData {
+            col: cell.column as u16,
+            row: cell.line as u16,
+
+            top: glyph.top,
+            left: glyph.left,
+            width: glyph.width,
+            height: glyph.height,
+
+            uv_bot: glyph.uv_bot,
+            uv_left: glyph.uv_left,
+            uv_width: glyph.uv_width,
+            uv_height: glyph.uv_height,
+        });
     }
 
     pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
@@ -200,7 +223,7 @@ impl Glsl3Renderer {
                 GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
             let glyph = glyph_cache.get(glyph_key, self);
-            self.batch.add_item(&cell, &glyph);
+            self.add_item(&cell, &glyph);
         }
     }
 
@@ -209,17 +232,17 @@ impl Glsl3Renderer {
             gl::BufferSubData(
                 gl::ARRAY_BUFFER,
                 0,
-                (self.batch.instances.len() * size_of::<InstanceData>()) as isize,
-                self.batch.instances.as_ptr() as *const _,
+                (self.instances.len() * size_of::<InstanceData>()) as isize,
+                self.instances.as_ptr() as *const _,
             );
         }
 
         // Bind texture if necessary.
-        if self.active_tex != self.batch.tex {
+        if self.active_tex != self.tex {
             unsafe {
-                gl::BindTexture(gl::TEXTURE_2D, self.batch.tex);
+                gl::BindTexture(gl::TEXTURE_2D, self.tex);
             }
-            self.active_tex = self.batch.tex;
+            self.active_tex = self.tex;
         }
 
         unsafe {
@@ -228,7 +251,7 @@ impl Glsl3Renderer {
                 6,
                 gl::UNSIGNED_INT,
                 ptr::null(),
-                self.batch.instances.len() as GLsizei,
+                self.instances.len() as GLsizei,
             );
         }
     }
@@ -312,4 +335,24 @@ impl Shader {
 
         shader
     }
+}
+
+#[derive(Debug)]
+#[repr(C)]
+pub struct InstanceData {
+    // Coords.
+    pub col: u16,
+    pub row: u16,
+
+    // Glyph offset and size.
+    pub left: i16,
+    pub top: i16,
+    pub width: i16,
+    pub height: i16,
+
+    // UV offset and scale.
+    pub uv_left: f32,
+    pub uv_bot: f32,
+    pub uv_width: f32,
+    pub uv_height: f32,
 }
