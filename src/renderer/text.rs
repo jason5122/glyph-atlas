@@ -1,4 +1,3 @@
-use std::ffi::CStr;
 use std::mem::size_of;
 
 use bitflags::bitflags;
@@ -140,22 +139,24 @@ impl TextShaderProgram {
         macro_rules! cstr {
             ($s:literal) => {
                 // This can be optimized into an no-op with pre-allocated NUL-terminated bytes.
-                unsafe { std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast()) }
+                std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast())
             };
         }
 
         let program = ShaderProgram::new(None, TEXT_SHADER_V, TEXT_SHADER_F);
-        Self {
-            u_projection: program.get_uniform_location(cstr!("projection")),
-            u_cell_dim: program.get_uniform_location(cstr!("cellDim")),
-            program,
+        unsafe {
+            Self {
+                u_projection: gl::GetUniformLocation(program.0, cstr!("projection").as_ptr()),
+                u_cell_dim: gl::GetUniformLocation(program.0, cstr!("cellDim").as_ptr()),
+                program,
+            }
         }
     }
 }
 
 /// A wrapper for a shader program id, with automatic lifetime management.
 #[derive(Debug)]
-pub struct ShaderProgram(GLuint);
+pub struct ShaderProgram(pub GLuint);
 
 impl ShaderProgram {
     pub fn new(
@@ -168,27 +169,13 @@ impl ShaderProgram {
 
         let program = unsafe { Self(gl::CreateProgram()) };
 
-        let mut success: GLint = 0;
         unsafe {
-            gl::AttachShader(program.id(), vertex_shader.id());
-            gl::AttachShader(program.id(), fragment_shader.id());
-            gl::LinkProgram(program.id());
-            gl::GetProgramiv(program.id(), gl::LINK_STATUS, &mut success);
+            gl::AttachShader(program.0, vertex_shader.0);
+            gl::AttachShader(program.0, fragment_shader.0);
+            gl::LinkProgram(program.0);
         }
 
         program
-    }
-
-    /// Get uniform location by name. Panic if failed.
-    pub fn get_uniform_location(&self, name: &'static CStr) -> GLint {
-        // This call doesn't require `UseProgram`.
-        let ret = unsafe { gl::GetUniformLocation(self.id(), name.as_ptr()) };
-        ret
-    }
-
-    /// Get the shader program id.
-    pub fn id(&self) -> GLuint {
-        self.0
     }
 }
 
@@ -204,11 +191,8 @@ struct Shader(GLuint);
 
 impl Shader {
     fn new(shader_header: Option<&str>, kind: GLenum, source: &'static str) -> Self {
-        let version_header = "#version 330 core\n";
         let mut sources = Vec::<*const GLchar>::with_capacity(3);
         let mut lengthes = Vec::<GLint>::with_capacity(3);
-        sources.push(version_header.as_ptr().cast());
-        lengthes.push(version_header.len() as GLint);
 
         if let Some(shader_header) = shader_header {
             sources.push(shader_header.as_ptr().cast());
@@ -220,23 +204,17 @@ impl Shader {
 
         let shader = unsafe { Self(gl::CreateShader(kind)) };
 
-        let mut success: GLint = 0;
         unsafe {
             gl::ShaderSource(
-                shader.id(),
+                shader.0,
                 lengthes.len() as GLint,
                 sources.as_ptr().cast(),
                 lengthes.as_ptr(),
             );
-            gl::CompileShader(shader.id());
-            gl::GetShaderiv(shader.id(), gl::COMPILE_STATUS, &mut success);
+            gl::CompileShader(shader.0);
         }
 
         shader
-    }
-
-    fn id(&self) -> GLuint {
-        self.0
     }
 }
 

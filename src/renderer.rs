@@ -175,7 +175,7 @@ impl Glsl3Renderer {
         }
 
         unsafe {
-            gl::UseProgram(self.program.program.id());
+            gl::UseProgram(self.program.program.0);
             gl::Uniform2f(self.program.u_cell_dim, size_info.cell_width, size_info.cell_height);
 
             gl::BindVertexArray(self.vao);
@@ -240,7 +240,7 @@ impl Glsl3Renderer {
             );
 
             let program = &self.program;
-            gl::UseProgram(program.program.id());
+            gl::UseProgram(program.program.0);
 
             let u_projection = program.u_projection;
             let width = size.width;

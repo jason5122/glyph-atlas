@@ -1,3 +1,5 @@
+#version 330 core
+
 // Cell properties.
 layout(location = 0) in vec2 gridCoords;
 
