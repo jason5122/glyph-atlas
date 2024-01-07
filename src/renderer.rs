@@ -2,7 +2,7 @@ use std::ffi::CString;
 use std::mem::size_of;
 use std::ptr;
 
-use crossfont::GlyphKey;
+use crossfont::{FontKey, GlyphKey, Rasterizer, Size};
 
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
@@ -16,7 +16,7 @@ mod glyph_cache;
 pub mod platform;
 
 use atlas::{Atlas, ATLAS_SIZE};
-pub use glyph_cache::{Glyph, GlyphCache};
+pub use glyph_cache::Glyph;
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
@@ -157,7 +157,13 @@ impl Glsl3Renderer {
         }
     }
 
-    pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
+    pub fn draw_cells(
+        &mut self,
+        size_info: &SizeInfo,
+        rasterizer: &mut Rasterizer,
+        font_key: FontKey,
+        font_size: Size,
+    ) {
         unsafe {
             gl::UseProgram(self.shader_program);
             gl::Uniform2f(self.u_cell_dim, size_info.cell_width, size_info.cell_height);
@@ -189,22 +195,14 @@ impl Glsl3Renderer {
             "Hello world!",
             "Hello world!",
             "Hello world!",
-            // "let x = &[1, 2, 4];",
-            // "let mut iterator = x.iter();",
-            // "assert_eq!(iterator.next(), Some(&1));",
-            // "assert_eq!(iterator.next(), Some(&2));",
-            // "assert_eq!(iterator.next(), Some(&4));",
-            // "assert_eq!(iterator.next(), None);",
         ];
 
         for (i, s) in strs.iter().enumerate() {
             for (column, character) in s.chars().enumerate() {
                 let line = 10 + i;
-                let font_key = glyph_cache.font_key;
 
-                let glyph_key = GlyphKey { font_key, size: glyph_cache.font_size, character };
-
-                let rasterized = glyph_cache.rasterizer.get_glyph(glyph_key).unwrap();
+                let glyph_key = GlyphKey { font_key, size: font_size, character };
+                let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
                 let glyph = self.atlas.insert_inner(&rasterized);
 
                 if self.instances.len() == 0 {

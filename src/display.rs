@@ -5,13 +5,13 @@ use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
 use glutin::prelude::*;
 use glutin::surface::{Surface, WindowSurface};
 
-use crossfont::Rasterizer;
+use crossfont::{FontDesc, FontKey, Rasterizer, Size};
 
 use raw_window_handle::HasRawWindowHandle;
 
 use winit::window::Window;
 
-use crate::renderer::{self, Glsl3Renderer, GlyphCache};
+use crate::renderer::{self, Glsl3Renderer};
 
 /// Terminal size info.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -69,18 +69,25 @@ pub struct Display {
 
     context: PossiblyCurrentContext,
 
-    glyph_cache: GlyphCache,
+    rasterizer: Rasterizer,
+
+    font_key: FontKey,
+
+    font_size: Size,
 }
 
 impl Display {
     pub fn new(window: Window, gl_context: NotCurrentContext) -> Display {
-        let rasterizer = Rasterizer::new(window.scale_factor() as f32);
+        let mut rasterizer = Rasterizer::new(window.scale_factor() as f32);
 
-        let glyph_cache = GlyphCache::new(rasterizer);
+        let font_name = String::from("Source Code Pro");
+        let font_size = Size::new(16.);
+        let regular_desc = FontDesc::new(&font_name, &String::from("Regular"));
+        let font_key = rasterizer.load_font(&regular_desc, font_size).unwrap();
 
         let offset_x = f64::from(1);
         let offset_y = f64::from(2);
-        let metrics = glyph_cache.metrics;
+        let metrics = rasterizer.metrics(font_key, font_size);
         let cell_width = (metrics.average_advance + offset_x).floor().max(1.) as f32;
         let cell_height = (metrics.line_height + offset_y).floor().max(1.) as f32;
 
@@ -118,8 +125,10 @@ impl Display {
             context,
             surface: ManuallyDrop::new(surface),
             renderer: ManuallyDrop::new(renderer),
-            glyph_cache,
             size_info,
+            rasterizer,
+            font_key,
+            font_size,
         }
     }
 
@@ -135,7 +144,7 @@ impl Display {
         // Make sure this window's OpenGL context is active.
         self.make_current();
 
-        self.renderer.draw_cells(&size_info, &mut self.glyph_cache);
+        self.renderer.draw_cells(&size_info, &mut self.rasterizer, self.font_key, self.font_size);
 
         // Clearing debug highlights from the previous frame requires full redraw.
         let _ = match (self.surface.deref(), &self.context) {
