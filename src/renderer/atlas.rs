@@ -55,15 +55,6 @@ pub struct Atlas {
     row_tallest: i32,
 }
 
-/// Error that can happen when inserting a texture to the Atlas.
-pub enum AtlasInsertError {
-    /// Texture atlas is full.
-    Full,
-
-    /// The glyph cannot fit within a single texture.
-    GlyphTooLarge,
-}
-
 impl Atlas {
     pub fn new(size: i32) -> Self {
         let mut id: GLuint = 0;
@@ -96,36 +87,7 @@ impl Atlas {
         Self { id, width: size, height: size, row_extent: 0, row_baseline: 0, row_tallest: 0 }
     }
 
-    /// Insert a RasterizedGlyph into the texture atlas.
-    pub fn insert(
-        &mut self,
-        glyph: &RasterizedGlyph,
-        active_tex: &mut u32,
-    ) -> Result<Glyph, AtlasInsertError> {
-        if glyph.width > self.width || glyph.height > self.height {
-            return Err(AtlasInsertError::GlyphTooLarge);
-        }
-
-        // If there's not enough room in current row, go onto next one.
-        if !self.room_in_row(glyph) {
-            self.advance_row()?;
-        }
-
-        // If there's still not room, there's nothing that can be done here..
-        if !self.room_in_row(glyph) {
-            return Err(AtlasInsertError::Full);
-        }
-
-        // There appears to be room; load the glyph.
-        Ok(self.insert_inner(glyph, active_tex))
-    }
-
-    /// Insert the glyph without checking for room.
-    ///
-    /// Internal function for use once atlas has been checked for space. GL
-    /// errors could still occur at this point if we were checking for them;
-    /// hence, the Result.
-    fn insert_inner(&mut self, glyph: &RasterizedGlyph, active_tex: &mut u32) -> Glyph {
+    pub fn insert_inner(&mut self, glyph: &RasterizedGlyph, active_tex: &mut u32) -> Glyph {
         let offset_y = self.row_baseline;
         let offset_x = self.row_extent;
         let height = glyph.height;
@@ -175,67 +137,6 @@ impl Atlas {
             uv_left,
             uv_width,
             uv_height,
-        }
-    }
-
-    /// Check if there's room in the current row for given glyph.
-    pub fn room_in_row(&self, raw: &RasterizedGlyph) -> bool {
-        let next_extent = self.row_extent + raw.width;
-        let enough_width = next_extent <= self.width;
-        let enough_height = raw.height < (self.height - self.row_baseline);
-
-        enough_width && enough_height
-    }
-
-    /// Mark current row as finished and prepare to insert into the next row.
-    pub fn advance_row(&mut self) -> Result<(), AtlasInsertError> {
-        let advance_to = self.row_baseline + self.row_tallest;
-        if self.height - advance_to <= 0 {
-            return Err(AtlasInsertError::Full);
-        }
-
-        self.row_baseline = advance_to;
-        self.row_extent = 0;
-        self.row_tallest = 0;
-
-        Ok(())
-    }
-
-    /// Load a glyph into a texture atlas.
-    ///
-    /// If the current atlas is full, a new one will be created.
-    #[inline]
-    pub fn load_glyph(
-        active_tex: &mut GLuint,
-        atlas: &mut Vec<Atlas>,
-        current_atlas: &mut usize,
-        rasterized: &RasterizedGlyph,
-    ) -> Glyph {
-        // At least one atlas is guaranteed to be in the `self.atlas` list; thus
-        // the unwrap.
-        match atlas[*current_atlas].insert(rasterized, active_tex) {
-            Ok(glyph) => glyph,
-            Err(AtlasInsertError::Full) => {
-                // Advance the current Atlas index.
-                *current_atlas += 1;
-                if *current_atlas == atlas.len() {
-                    let new = Atlas::new(ATLAS_SIZE);
-                    *active_tex = 0; // Atlas::new binds a texture. Ugh this is sloppy.
-                    atlas.push(new);
-                }
-                Atlas::load_glyph(active_tex, atlas, current_atlas, rasterized)
-            },
-            Err(AtlasInsertError::GlyphTooLarge) => Glyph {
-                tex_id: atlas[*current_atlas].id,
-                top: 0,
-                left: 0,
-                width: 0,
-                height: 0,
-                uv_bot: 0.,
-                uv_left: 0.,
-                uv_width: 0.,
-                uv_height: 0.,
-            },
         }
     }
 }
