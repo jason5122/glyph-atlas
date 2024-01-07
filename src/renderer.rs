@@ -148,16 +148,17 @@ impl Glsl3Renderer {
     pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
         let mut cells = Vec::new();
 
-        let strs = vec![
-            "Hello world!",
-            "let x = &[1, 2, 4];",
-            "let mut iterator = x.iter();",
-            "assert_eq!(iterator.next(), Some(&1));",
-            "assert_eq!(iterator.next(), Some(&2));",
-            "assert_eq!(iterator.next(), Some(&4));",
-            "assert_eq!(iterator.next(), None);",
-            "huh 🤨 🤨 🤨",
-        ];
+        // let strs = vec![
+        //     "Hello world!",
+        //     "let x = &[1, 2, 4];",
+        //     "let mut iterator = x.iter();",
+        //     "assert_eq!(iterator.next(), Some(&1));",
+        //     "assert_eq!(iterator.next(), Some(&2));",
+        //     "assert_eq!(iterator.next(), Some(&4));",
+        //     "assert_eq!(iterator.next(), None);",
+        //     "huh 🤨 🤨 🤨",
+        // ];
+        let strs = vec!["E"];
         // Red
         // let fg = Rgb::new(0xfc, 0xfd, 0xfd);
         // let bg = Rgb::new(0xec, 0x5f, 0x66);

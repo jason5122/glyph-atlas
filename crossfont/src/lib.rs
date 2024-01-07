@@ -370,6 +370,19 @@ impl Font {
             BitmapBuffer::Rgb(darwin::extract_rgb(&rasterized_pixels))
         };
 
+        let family = self.ct_font.family_name();
+        let face = self.ct_font.face_name();
+        if face == "Regular" && character == 'E' {
+            println!("{} {} {}", family, face, self.ct_font.pt_size());
+
+            println!("rasterized_pixels.len() = {}", rasterized_pixels.len());
+            println!(
+                "height = {}, bytes_per_row = {}",
+                cg_context.height(),
+                cg_context.bytes_per_row()
+            );
+        }
+
         RasterizedGlyph {
             character,
             left: rasterized_left,
