@@ -16,9 +16,7 @@ use text::atlas::{Atlas, ATLAS_SIZE};
 pub mod platform;
 pub mod text;
 
-pub use text::{
-    Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, RenderingPass, TextShaderProgram,
-};
+pub use text::{Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, TextShaderProgram};
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
@@ -148,21 +146,17 @@ impl Glsl3Renderer {
     pub fn draw_cells(&mut self, size_info: &SizeInfo, glyph_cache: &mut GlyphCache) {
         let mut cells = Vec::new();
 
-        // let strs = vec![
-        //     "Hello world!",
-        //     "let x = &[1, 2, 4];",
-        //     "let mut iterator = x.iter();",
-        //     "assert_eq!(iterator.next(), Some(&1));",
-        //     "assert_eq!(iterator.next(), Some(&2));",
-        //     "assert_eq!(iterator.next(), Some(&4));",
-        //     "assert_eq!(iterator.next(), None);",
-        //     "huh 🤨 🤨 🤨",
-        // ];
-        let strs = vec!["E"];
-        // Red
-        // let fg = Rgb::new(0xfc, 0xfd, 0xfd);
-        // let bg = Rgb::new(0xec, 0x5f, 0x66);
-        // Black
+        let strs = vec![
+            "E",
+            "Hello world!",
+            "let x = &[1, 2, 4];",
+            "let mut iterator = x.iter();",
+            "assert_eq!(iterator.next(), Some(&1));",
+            "assert_eq!(iterator.next(), Some(&2));",
+            "assert_eq!(iterator.next(), Some(&4));",
+            "assert_eq!(iterator.next(), None);",
+            "huh 🤨 🤨 🤨",
+        ];
         let fg = Rgb::new(0x33, 0x33, 0x33);
         let bg = Rgb::new(0xfc, 0xfd, 0xfd);
         for (i, s) in strs.iter().enumerate() {
@@ -181,8 +175,8 @@ impl Glsl3Renderer {
         }
 
         unsafe {
-            gl::UseProgram(self.program.id());
-            self.program.set_term_uniforms(size_info);
+            gl::UseProgram(self.program.program.id());
+            gl::Uniform2f(self.program.u_cell_dim, size_info.cell_width, size_info.cell_height);
 
             gl::BindVertexArray(self.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
@@ -226,15 +220,6 @@ impl Glsl3Renderer {
         }
 
         unsafe {
-            self.program.set_rendering_pass(RenderingPass::Background);
-            gl::DrawElementsInstanced(
-                gl::TRIANGLES,
-                6,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-                self.batch.len() as GLsizei,
-            );
-            self.program.set_rendering_pass(RenderingPass::SubpixelPass1);
             gl::DrawElementsInstanced(
                 gl::TRIANGLES,
                 6,
@@ -255,9 +240,9 @@ impl Glsl3Renderer {
             );
 
             let program = &self.program;
-            gl::UseProgram(program.id());
+            gl::UseProgram(program.program.id());
 
-            let u_projection = program.projection_uniform();
+            let u_projection = program.u_projection;
             let width = size.width;
             let height = size.height;
             let padding_x = size.padding_x;

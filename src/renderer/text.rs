@@ -3,7 +3,6 @@ use std::mem::size_of;
 
 use bitflags::bitflags;
 
-use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
 use crate::renderer::RenderableCell;
@@ -21,15 +20,6 @@ bitflags! {
         const COLORED   = 0b0000_0001;
         const WIDE_CHAR = 0b0000_0010;
     }
-}
-
-#[repr(u8)]
-pub enum RenderingPass {
-    /// Rendering pass used to render background color in text shaders.
-    Background = 0,
-
-    /// The first pass to render text.
-    SubpixelPass1 = 1,
 }
 
 static TEXT_SHADER_F: &str = include_str!("../../res/text.f.glsl");
@@ -136,18 +126,13 @@ impl Batch {
 #[derive(Debug)]
 pub struct TextShaderProgram {
     /// Shader program.
-    program: ShaderProgram,
+    pub program: ShaderProgram,
 
     /// Projection scale and offset uniform.
-    u_projection: GLint,
+    pub u_projection: GLint,
 
     /// Cell dimensions (pixels).
-    u_cell_dim: GLint,
-
-    /// Background pass flag.
-    ///
-    /// Rendering is split into two passes; one for backgrounds, and one for text.
-    u_rendering_pass: GLint,
+    pub u_cell_dim: GLint,
 }
 
 impl TextShaderProgram {
@@ -163,33 +148,8 @@ impl TextShaderProgram {
         Self {
             u_projection: program.get_uniform_location(cstr!("projection")),
             u_cell_dim: program.get_uniform_location(cstr!("cellDim")),
-            u_rendering_pass: program.get_uniform_location(cstr!("renderingPass")),
             program,
         }
-    }
-
-    pub fn set_term_uniforms(&self, props: &SizeInfo) {
-        unsafe {
-            gl::Uniform2f(self.u_cell_dim, props.cell_width, props.cell_height);
-        }
-    }
-
-    pub fn set_rendering_pass(&self, rendering_pass: RenderingPass) {
-        let value = match rendering_pass {
-            RenderingPass::Background | RenderingPass::SubpixelPass1 => rendering_pass as i32,
-        };
-
-        unsafe {
-            gl::Uniform1i(self.u_rendering_pass, value);
-        }
-    }
-
-    pub fn id(&self) -> GLuint {
-        self.program.id()
-    }
-
-    pub fn projection_uniform(&self) -> GLint {
-        self.u_projection
     }
 }
 

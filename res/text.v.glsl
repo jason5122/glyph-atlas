@@ -23,8 +23,6 @@ flat out vec4 bg;
 uniform vec2 cellDim;
 uniform vec4 projection;
 
-uniform int renderingPass;
-
 #define WIDE_CHAR 2
 
 void main() {
@@ -52,24 +50,14 @@ void main() {
         fg.a = round(fg.a - WIDE_CHAR);
     }
 
-    if (renderingPass == 0) {
-        vec2 backgroundDim = cellDim;
-        backgroundDim.x *= occupiedCells;
+    vec2 glyphSize = glyph.zw;
+    vec2 glyphOffset = glyph.xy;
+    glyphOffset.y = cellDim.y - glyphOffset.y;
 
-        vec2 finalPosition = cellPosition + backgroundDim * position;
-        gl_Position = vec4(projectionOffset + projectionScale * finalPosition, 0.0, 1.0);
+    vec2 finalPosition = cellPosition + glyphSize * position + glyphOffset;
+    gl_Position = vec4(projectionOffset + projectionScale * finalPosition, 0.0, 1.0);
 
-        TexCoords = vec2(0, 0);
-    } else {
-        vec2 glyphSize = glyph.zw;
-        vec2 glyphOffset = glyph.xy;
-        glyphOffset.y = cellDim.y - glyphOffset.y;
-
-        vec2 finalPosition = cellPosition + glyphSize * position + glyphOffset;
-        gl_Position = vec4(projectionOffset + projectionScale * finalPosition, 0.0, 1.0);
-
-        vec2 uvOffset = uv.xy;
-        vec2 uvSize = uv.zw;
-        TexCoords = uvOffset + position * uvSize;
-    }
+    vec2 uvOffset = uv.xy;
+    vec2 uvSize = uv.zw;
+    TexCoords = uvOffset + position * uvSize;
 }
