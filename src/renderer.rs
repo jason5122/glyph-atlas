@@ -11,12 +11,12 @@ use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
 
-use text::atlas::{Atlas, ATLAS_SIZE};
-
+mod atlas;
+mod glyph_cache;
 pub mod platform;
-pub mod text;
 
-pub use text::{Glyph, GlyphCache, LoadGlyph};
+use atlas::{Atlas, ATLAS_SIZE};
+pub use glyph_cache::{Glyph, GlyphCache, LoadGlyph};
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
