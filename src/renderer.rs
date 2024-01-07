@@ -16,7 +16,7 @@ use text::atlas::{Atlas, ATLAS_SIZE};
 pub mod platform;
 pub mod text;
 
-pub use text::{Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, TextShaderProgram};
+pub use text::{Batch, Glyph, GlyphCache, InstanceData, LoadGlyph, Shader};
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
@@ -24,7 +24,8 @@ const BATCH_MAX: usize = 0x1_0000;
 #[derive(Debug)]
 pub struct Glsl3Renderer {
     shader_program: GLuint,
-    program: TextShaderProgram,
+    u_projection: GLint,
+    u_cell_dim: GLint,
     vao: GLuint,
     ebo: GLuint,
     vbo_instance: GLuint,
@@ -42,7 +43,6 @@ impl Glsl3Renderer {
             gl_display.get_proc_address(symbol.as_c_str()).cast()
         });
 
-        let program = TextShaderProgram::new();
         let mut vao: GLuint = 0;
         let mut ebo: GLuint = 0;
         let mut vbo_instance: GLuint = 0;
@@ -122,16 +122,38 @@ impl Glsl3Renderer {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
         }
 
-        Self {
-            shader_program: unsafe { gl::CreateProgram() },
-            program,
-            vao,
-            ebo,
-            vbo_instance,
-            atlas: vec![Atlas::new(ATLAS_SIZE)],
-            current_atlas: 0,
-            active_tex: 0,
-            batch: Batch::new(),
+        macro_rules! cstr {
+            ($s:literal) => {
+                // This can be optimized into an no-op with pre-allocated NUL-terminated bytes.
+                std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast())
+            };
+        }
+
+        unsafe {
+            let shader_program = gl::CreateProgram();
+            let vertex_shader = Shader::new(gl::VERTEX_SHADER, include_str!("../res/text.v.glsl"));
+            let fragment_shader =
+                Shader::new(gl::FRAGMENT_SHADER, include_str!("../res/text.f.glsl"));
+
+            gl::AttachShader(shader_program, vertex_shader.0);
+            gl::AttachShader(shader_program, fragment_shader.0);
+            gl::LinkProgram(shader_program);
+
+            let u_projection = gl::GetUniformLocation(shader_program, cstr!("projection").as_ptr());
+            let u_cell_dim = gl::GetUniformLocation(shader_program, cstr!("cellDim").as_ptr());
+
+            Self {
+                shader_program,
+                u_projection,
+                u_cell_dim,
+                vao,
+                ebo,
+                vbo_instance,
+                atlas: vec![Atlas::new(ATLAS_SIZE)],
+                current_atlas: 0,
+                active_tex: 0,
+                batch: Batch::new(),
+            }
         }
     }
 
@@ -156,8 +178,8 @@ impl Glsl3Renderer {
         }
 
         unsafe {
-            gl::UseProgram(self.program.id);
-            gl::Uniform2f(self.program.u_cell_dim, size_info.cell_width, size_info.cell_height);
+            gl::UseProgram(self.shader_program);
+            gl::Uniform2f(self.u_cell_dim, size_info.cell_width, size_info.cell_height);
 
             gl::BindVertexArray(self.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
@@ -220,10 +242,9 @@ impl Glsl3Renderer {
                 size.height as i32 - 2 * size.padding_y as i32,
             );
 
-            let program = &self.program;
-            gl::UseProgram(program.id);
+            gl::UseProgram(self.shader_program);
 
-            let u_projection = program.u_projection;
+            let u_projection = self.u_projection;
             let width = size.width;
             let height = size.height;
             let padding_x = size.padding_x;

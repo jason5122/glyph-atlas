@@ -9,9 +9,6 @@ pub mod glyph_cache;
 
 pub use glyph_cache::{Glyph, GlyphCache, LoadGlyph};
 
-static TEXT_SHADER_F: &str = include_str!("../../res/text.f.glsl");
-static TEXT_SHADER_V: &str = include_str!("../../res/text.v.glsl");
-
 #[derive(Debug)]
 #[repr(C)]
 pub struct InstanceData {
@@ -77,44 +74,10 @@ impl Batch {
 }
 
 #[derive(Debug)]
-pub struct TextShaderProgram {
-    pub id: GLuint,
-    pub u_projection: GLint,
-    pub u_cell_dim: GLint,
-}
-
-impl TextShaderProgram {
-    pub fn new() -> TextShaderProgram {
-        macro_rules! cstr {
-            ($s:literal) => {
-                // This can be optimized into an no-op with pre-allocated NUL-terminated bytes.
-                std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast())
-            };
-        }
-
-        unsafe {
-            let id = gl::CreateProgram();
-            let vertex_shader = Shader::new(gl::VERTEX_SHADER, TEXT_SHADER_V);
-            let fragment_shader = Shader::new(gl::FRAGMENT_SHADER, TEXT_SHADER_F);
-
-            gl::AttachShader(id, vertex_shader.0);
-            gl::AttachShader(id, fragment_shader.0);
-            gl::LinkProgram(id);
-
-            Self {
-                id,
-                u_projection: gl::GetUniformLocation(id, cstr!("projection").as_ptr()),
-                u_cell_dim: gl::GetUniformLocation(id, cstr!("cellDim").as_ptr()),
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
-struct Shader(GLuint);
+pub struct Shader(pub GLuint);
 
 impl Shader {
-    fn new(kind: GLenum, source: &'static str) -> Self {
+    pub fn new(kind: GLenum, source: &'static str) -> Self {
         let mut sources = Vec::<*const GLchar>::with_capacity(3);
         let mut lengthes = Vec::<GLint>::with_capacity(3);
 
