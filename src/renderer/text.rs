@@ -179,12 +179,6 @@ impl ShaderProgram {
     }
 }
 
-impl Drop for ShaderProgram {
-    fn drop(&mut self) {
-        unsafe { gl::DeleteProgram(self.0) }
-    }
-}
-
 /// A wrapper for a shader id, with automatic lifetime management.
 #[derive(Debug)]
 struct Shader(GLuint);
@@ -215,11 +209,5 @@ impl Shader {
         }
 
         shader
-    }
-}
-
-impl Drop for Shader {
-    fn drop(&mut self) {
-        unsafe { gl::DeleteShader(self.0) }
     }
 }

@@ -76,7 +76,7 @@ impl Display {
     pub fn new(window: Window, gl_context: NotCurrentContext) -> Display {
         let rasterizer = Rasterizer::new(window.scale_factor() as f32);
 
-        let mut glyph_cache = GlyphCache::new(rasterizer);
+        let glyph_cache = GlyphCache::new(rasterizer);
 
         let offset_x = f64::from(1);
         let offset_y = f64::from(2);
@@ -93,10 +93,7 @@ impl Display {
 
         let context = gl_context.make_current(&surface).unwrap();
 
-        let mut renderer = Glsl3Renderer::new(&context);
-
-        // Load font common glyphs to accelerate rendering.
-        glyph_cache.load_common_glyphs(&mut renderer);
+        let renderer = Glsl3Renderer::new(&context);
 
         let padding = (5. * (window.scale_factor() as f32), 5. * (window.scale_factor() as f32));
         let viewport_size = window.inner_size();
@@ -145,17 +142,5 @@ impl Display {
         let _ = match (self.surface.deref(), &self.context) {
             (surface, context) => surface.swap_buffers(context),
         };
-    }
-}
-
-impl Drop for Display {
-    fn drop(&mut self) {
-        // Switch OpenGL context before dropping, otherwise objects (like programs) from other
-        // contexts might be deleted during droping renderer.
-        self.make_current();
-        unsafe {
-            ManuallyDrop::drop(&mut self.renderer);
-            ManuallyDrop::drop(&mut self.surface);
-        }
     }
 }

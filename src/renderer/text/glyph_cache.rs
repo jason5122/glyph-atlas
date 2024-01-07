@@ -97,14 +97,4 @@ impl GlyphCache {
         // Add glyph to cache.
         loader.load_glyph(&glyph)
     }
-
-    pub fn load_common_glyphs<L: LoadGlyph>(&mut self, loader: &mut L) {
-        let font_keys = vec![self.font_key, self.bold_key, self.italic_key, self.bold_italic_key];
-        for font_key in font_keys {
-            // Cache all ascii characters.
-            for i in 32u8..=126u8 {
-                self.get(GlyphKey { font_key, character: i as char, size: self.font_size }, loader);
-            }
-        }
-    }
 }

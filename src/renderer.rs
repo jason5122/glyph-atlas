@@ -268,16 +268,6 @@ impl Glsl3Renderer {
     }
 }
 
-impl Drop for Glsl3Renderer {
-    fn drop(&mut self) {
-        unsafe {
-            gl::DeleteBuffers(1, &self.vbo_instance);
-            gl::DeleteBuffers(1, &self.ebo);
-            gl::DeleteVertexArrays(1, &self.vao);
-        }
-    }
-}
-
 impl LoadGlyph for Glsl3Renderer {
     fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
         Atlas::load_glyph(
