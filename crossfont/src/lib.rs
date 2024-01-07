@@ -204,16 +204,7 @@ pub struct RasterizedGlyph {
     pub top: i32,
     pub left: i32,
     pub advance: (i32, i32),
-    pub buffer: BitmapBuffer,
-}
-
-#[derive(Clone, Debug)]
-pub enum BitmapBuffer {
-    /// RGB alphamask.
-    Rgb(Vec<u8>),
-
-    /// RGBA pixels with premultiplied alpha.
-    Rgba(Vec<u8>),
+    pub buffer: Vec<u8>,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -315,7 +306,7 @@ impl Font {
                 top: 0,
                 left: 0,
                 advance: (0, 0),
-                buffer: BitmapBuffer::Rgb(Vec::new()),
+                buffer: Vec::new(),
             };
         }
 
@@ -364,11 +355,7 @@ impl Font {
 
         let rasterized_pixels = cg_context.data().to_vec();
 
-        let buffer = if is_colored {
-            BitmapBuffer::Rgba(darwin::extract_rgba(&rasterized_pixels))
-        } else {
-            BitmapBuffer::Rgb(darwin::extract_rgb(&rasterized_pixels))
-        };
+        let buffer = darwin::extract_rgb(&rasterized_pixels);
 
         let family = self.ct_font.family_name();
         let face = self.ct_font.face_name();

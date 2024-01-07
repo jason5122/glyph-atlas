@@ -8,7 +8,6 @@ layout(location = 0, index = 1) out vec4 alphaMask;
 uniform sampler2D mask;
 
 void main() {
-    // Regular text glyphs.
     vec3 textColor = texture(mask, TexCoords).rgb;
     alphaMask = vec4(textColor, textColor.r);
     color = vec4(51 / 255.0, 51 / 255.0, 51 / 255.0, 1.0);

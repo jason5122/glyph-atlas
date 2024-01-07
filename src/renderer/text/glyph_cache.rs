@@ -14,7 +14,6 @@ pub trait LoadGlyph {
 #[derive(Copy, Clone, Debug)]
 pub struct Glyph {
     pub tex_id: GLuint,
-    pub multicolor: bool,
     pub top: i16,
     pub left: i16,
     pub width: i16,

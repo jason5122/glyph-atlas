@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::ptr;
 
-use crossfont::{BitmapBuffer, RasterizedGlyph};
+use crossfont::RasterizedGlyph;
 
 use crate::gl;
 use crate::gl::types::*;
@@ -130,22 +130,12 @@ impl Atlas {
         let offset_x = self.row_extent;
         let height = glyph.height;
         let width = glyph.width;
-        let multicolor;
 
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.id);
 
             // Load data into OpenGL.
-            let (format, buffer) = match &glyph.buffer {
-                BitmapBuffer::Rgb(buffer) => {
-                    multicolor = false;
-                    (gl::RGB, Cow::Borrowed(buffer))
-                },
-                BitmapBuffer::Rgba(buffer) => {
-                    multicolor = true;
-                    (gl::RGBA, Cow::Borrowed(buffer))
-                },
-            };
+            let (format, buffer) = (gl::RGB, Cow::Borrowed(&glyph.buffer));
 
             gl::TexSubImage2D(
                 gl::TEXTURE_2D,
@@ -177,7 +167,6 @@ impl Atlas {
 
         Glyph {
             tex_id: self.id,
-            multicolor,
             top: glyph.top as i16,
             left: glyph.left as i16,
             width: width as i16,
@@ -238,7 +227,6 @@ impl Atlas {
             },
             Err(AtlasInsertError::GlyphTooLarge) => Glyph {
                 tex_id: atlas[*current_atlas].id,
-                multicolor: false,
                 top: 0,
                 left: 0,
                 width: 0,
