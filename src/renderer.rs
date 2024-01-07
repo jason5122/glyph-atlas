@@ -272,7 +272,7 @@ impl Glsl3Renderer {
 
 impl LoadGlyph for Glsl3Renderer {
     fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
-        self.atlas.insert_inner(rasterized, &mut self.active_tex)
+        self.atlas.insert_inner(rasterized)
     }
 }
 

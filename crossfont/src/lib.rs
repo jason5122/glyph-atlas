@@ -203,7 +203,6 @@ pub struct RasterizedGlyph {
     pub height: i32,
     pub top: i32,
     pub left: i32,
-    pub advance: (i32, i32),
     pub buffer: Vec<u8>,
 }
 
@@ -305,7 +304,6 @@ impl Font {
                 height: 0,
                 top: 0,
                 left: 0,
-                advance: (0, 0),
                 buffer: Vec::new(),
             };
         }
@@ -364,6 +362,11 @@ impl Font {
 
             println!("{}x{}", rasterized_width, rasterized_height);
             println!(
+                "top: {}, left: {}",
+                (bounds.size.height + bounds.origin.y).ceil() as i32,
+                rasterized_left
+            );
+            println!(
                 "height = {}, bytes_per_row = {}, len = {}",
                 cg_context.height(),
                 cg_context.bytes_per_row(),
@@ -378,11 +381,10 @@ impl Font {
 
         RasterizedGlyph {
             character,
-            left: rasterized_left,
-            top: (bounds.size.height + bounds.origin.y).ceil() as i32,
             width: rasterized_width as i32,
             height: rasterized_height as i32,
-            advance: (0, 0),
+            top: (bounds.size.height + bounds.origin.y).ceil() as i32,
+            left: rasterized_left,
             buffer,
         }
     }

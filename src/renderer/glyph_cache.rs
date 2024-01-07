@@ -76,15 +76,15 @@ impl GlyphCache {
         let mut rasterized = self.rasterizer.get_glyph(glyph_key).unwrap();
         // let glyph = self.load_glyph(loader, rasterized);
 
-        rasterized.top -= self.metrics.descent as i32;
-        // The metrics of zero-width characters are based on rendering
-        // the character after the current cell, with the anchor at the
-        // right side of the preceding character. Since we render the
-        // zero-width characters inside the preceding character, the
-        // anchor has been moved to the right by one cell.
-        if rasterized.character.width() == Some(0) {
-            rasterized.left += self.metrics.average_advance as i32;
-        }
+        // rasterized.top -= self.metrics.descent as i32;
+        // // The metrics of zero-width characters are based on rendering
+        // // the character after the current cell, with the anchor at the
+        // // right side of the preceding character. Since we render the
+        // // zero-width characters inside the preceding character, the
+        // // anchor has been moved to the right by one cell.
+        // if rasterized.character.width() == Some(0) {
+        //     rasterized.left += self.metrics.average_advance as i32;
+        // }
         let glyph = loader.load_glyph(&rasterized);
 
         *self.cache.entry(glyph_key).or_insert(glyph)

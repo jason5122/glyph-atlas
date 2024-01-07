@@ -71,7 +71,7 @@ impl Atlas {
         Self { id, width: size, height: size, row_extent: 0, row_baseline: 0, row_tallest: 0 }
     }
 
-    pub fn insert_inner(&mut self, glyph: &RasterizedGlyph, active_tex: &mut u32) -> Glyph {
+    pub fn insert_inner(&mut self, glyph: &RasterizedGlyph) -> Glyph {
         let offset_y = self.row_baseline;
         let offset_x = self.row_extent;
         let height = glyph.height;
@@ -80,8 +80,7 @@ impl Atlas {
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.id);
 
-            // Load data into OpenGL.
-            let (format, buffer) = (gl::RGB, Cow::Borrowed(&glyph.buffer));
+            let buffer = Cow::Borrowed(&glyph.buffer);
 
             gl::TexSubImage2D(
                 gl::TEXTURE_2D,
@@ -90,13 +89,12 @@ impl Atlas {
                 offset_y,
                 width,
                 height,
-                format,
+                gl::RGB,
                 gl::UNSIGNED_BYTE,
                 buffer.as_ptr() as *const _,
             );
 
             gl::BindTexture(gl::TEXTURE_2D, 0);
-            *active_tex = 0;
         }
 
         // Update Atlas state.
@@ -110,6 +108,21 @@ impl Atlas {
         let uv_left = offset_x as f32 / self.width as f32;
         let uv_height = height as f32 / self.height as f32;
         let uv_width = width as f32 / self.width as f32;
+
+        if glyph.character == 'E' {
+            println!(
+                "{} {} {} {} {} {} {} {} {}",
+                self.id,
+                glyph.top as i16,
+                glyph.left as i16,
+                width as i16,
+                height as i16,
+                uv_bot,
+                uv_left,
+                uv_width,
+                uv_height
+            );
+        }
 
         Glyph {
             tex_id: self.id,
