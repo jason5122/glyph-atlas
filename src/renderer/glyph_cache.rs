@@ -73,27 +73,20 @@ impl GlyphCache {
             return *glyph;
         };
 
-        let rasterized = self.rasterizer.get_glyph(glyph_key).unwrap();
-        let glyph = self.load_glyph(loader, rasterized);
-        *self.cache.entry(glyph_key).or_insert(glyph)
-    }
+        let mut rasterized = self.rasterizer.get_glyph(glyph_key).unwrap();
+        // let glyph = self.load_glyph(loader, rasterized);
 
-    pub fn load_glyph<L: ?Sized>(&self, loader: &mut L, mut glyph: RasterizedGlyph) -> Glyph
-    where
-        L: LoadGlyph,
-    {
-        glyph.top -= self.metrics.descent as i32;
-
+        rasterized.top -= self.metrics.descent as i32;
         // The metrics of zero-width characters are based on rendering
         // the character after the current cell, with the anchor at the
         // right side of the preceding character. Since we render the
         // zero-width characters inside the preceding character, the
         // anchor has been moved to the right by one cell.
-        if glyph.character.width() == Some(0) {
-            glyph.left += self.metrics.average_advance as i32;
+        if rasterized.character.width() == Some(0) {
+            rasterized.left += self.metrics.average_advance as i32;
         }
+        let glyph = loader.load_glyph(&rasterized);
 
-        // Add glyph to cache.
-        loader.load_glyph(&glyph)
+        *self.cache.entry(glyph_key).or_insert(glyph)
     }
 }
