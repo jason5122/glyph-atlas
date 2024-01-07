@@ -2,7 +2,7 @@ use std::ffi::CString;
 use std::mem::size_of;
 use std::ptr;
 
-use crossfont::{GlyphKey, RasterizedGlyph};
+use crossfont::GlyphKey;
 
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
@@ -16,7 +16,7 @@ mod glyph_cache;
 pub mod platform;
 
 use atlas::{Atlas, ATLAS_SIZE};
-pub use glyph_cache::{Glyph, GlyphCache, LoadGlyph};
+pub use glyph_cache::{Glyph, GlyphCache};
 
 /// Maximum items to be drawn in a batch.
 const BATCH_MAX: usize = 0x1_0000;
@@ -171,12 +171,30 @@ impl Glsl3Renderer {
         let strs = vec![
             "E",
             "Hello world!",
-            "let x = &[1, 2, 4];",
-            "let mut iterator = x.iter();",
-            "assert_eq!(iterator.next(), Some(&1));",
-            "assert_eq!(iterator.next(), Some(&2));",
-            "assert_eq!(iterator.next(), Some(&4));",
-            "assert_eq!(iterator.next(), None);",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            "Hello world!",
+            // "let x = &[1, 2, 4];",
+            // "let mut iterator = x.iter();",
+            // "assert_eq!(iterator.next(), Some(&1));",
+            // "assert_eq!(iterator.next(), Some(&2));",
+            // "assert_eq!(iterator.next(), Some(&4));",
+            // "assert_eq!(iterator.next(), None);",
         ];
 
         for (i, s) in strs.iter().enumerate() {
@@ -186,7 +204,8 @@ impl Glsl3Renderer {
 
                 let glyph_key = GlyphKey { font_key, size: glyph_cache.font_size, character };
 
-                let glyph = glyph_cache.get(glyph_key, self);
+                let rasterized = glyph_cache.rasterizer.get_glyph(glyph_key).unwrap();
+                let glyph = self.atlas.insert_inner(&rasterized);
 
                 if self.instances.len() == 0 {
                     self.tex = glyph.tex_id;
@@ -267,12 +286,6 @@ impl Glsl3Renderer {
 
             gl::UseProgram(0);
         }
-    }
-}
-
-impl LoadGlyph for Glsl3Renderer {
-    fn load_glyph(&mut self, rasterized: &RasterizedGlyph) -> Glyph {
-        self.atlas.insert_inner(rasterized)
     }
 }
 
