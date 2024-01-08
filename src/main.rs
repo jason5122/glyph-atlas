@@ -7,6 +7,7 @@ use glutin::context::{
     NotCurrentGlContextSurfaceAccessor, PossiblyCurrentContext,
     PossiblyCurrentContextGlSurfaceAccessor,
 };
+use glutin::display::{Display, DisplayApiPreference};
 use glutin::prelude::*;
 use glutin::surface::{Surface, WindowSurface};
 
@@ -39,7 +40,7 @@ impl Processor {
         let raw_window_handle = None;
 
         let gl_display =
-            platform::create_gl_display(raw_display_handle, raw_window_handle).unwrap();
+            unsafe { Display::new(raw_display_handle, DisplayApiPreference::Cgl).unwrap() };
         let gl_config = platform::pick_gl_config(&gl_display, raw_window_handle).unwrap();
 
         let window_builder = WindowBuilder::new();

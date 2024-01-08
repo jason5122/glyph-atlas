@@ -1,27 +1,14 @@
 use std::num::NonZeroU32;
 
-use glutin::config::{ColorBufferType, Config, ConfigTemplateBuilder, GetGlConfig};
+use glutin::config::{Config, ConfigTemplateBuilder, GetGlConfig};
 use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentContext, Version};
-use glutin::display::{Display, DisplayApiPreference, GetGlDisplay};
+use glutin::display::{Display, GetGlDisplay};
 use glutin::error::Result as GlutinResult;
 use glutin::prelude::*;
 use glutin::surface::{Surface, SurfaceAttributesBuilder, WindowSurface};
-use log::LevelFilter;
 
-use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
+use raw_window_handle::RawWindowHandle;
 use winit::dpi::PhysicalSize;
-
-pub fn create_gl_display(
-    raw_display_handle: RawDisplayHandle,
-    _raw_window_handle: Option<RawWindowHandle>,
-) -> GlutinResult<Display> {
-    #[cfg(target_os = "macos")]
-    let preference = DisplayApiPreference::Cgl;
-
-    let display = unsafe { Display::new(raw_display_handle, preference)? };
-    log::info!("Using {}", { display.version_string() });
-    Ok(display)
-}
 
 pub fn pick_gl_config(
     gl_display: &Display,
@@ -36,17 +23,7 @@ pub fn pick_gl_config(
         default_config = default_config.compatible_with_native_window(raw_window_handle);
     }
 
-    let config_10bit = default_config
-        .clone()
-        .with_buffer_type(ColorBufferType::Rgb { r_size: 10, g_size: 10, b_size: 10 })
-        .with_alpha_size(2);
-
-    let configs = [
-        default_config.clone(),
-        config_10bit.clone(),
-        default_config.with_transparency(false),
-        config_10bit.with_transparency(false),
-    ];
+    let configs = [default_config.clone()];
 
     for config in configs {
         let gl_config = unsafe {
@@ -66,23 +43,11 @@ pub fn create_gl_context(
     gl_config: &Config,
     raw_window_handle: Option<RawWindowHandle>,
 ) -> GlutinResult<NotCurrentContext> {
-    let debug = log::max_level() >= LevelFilter::Debug;
-    let mut profiles = [ContextAttributesBuilder::new()
-        .with_debug(debug)
+    let profile = ContextAttributesBuilder::new()
         .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
-        .build(raw_window_handle)]
-    .into_iter();
+        .build(raw_window_handle);
 
-    // Try the optimal config first.
-    let mut picked_context =
-        unsafe { gl_display.create_context(gl_config, &profiles.next().unwrap()) };
-
-    // Try the fallback ones.
-    while let (Err(_), Some(profile)) = (picked_context.as_ref(), profiles.next()) {
-        picked_context = unsafe { gl_display.create_context(gl_config, &profile) };
-    }
-
-    picked_context
+    unsafe { gl_display.create_context(gl_config, &profile) }
 }
 
 pub fn create_gl_surface(
@@ -90,7 +55,6 @@ pub fn create_gl_surface(
     size: PhysicalSize<u32>,
     raw_window_handle: RawWindowHandle,
 ) -> Surface<WindowSurface> {
-    // Get the display and the config used to create that context.
     let gl_display = gl_context.display();
     let gl_config = gl_context.config();
 
