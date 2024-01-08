@@ -1,5 +1,4 @@
 use std::ffi::CString;
-use std::mem::size_of;
 use std::ptr;
 
 use crossfont::{FontKey, GlyphKey, Rasterizer, Size};
@@ -7,17 +6,13 @@ use crossfont::{FontKey, GlyphKey, Rasterizer, Size};
 use glutin::context::PossiblyCurrentContext;
 use glutin::display::{GetGlDisplay, GlDisplay};
 
-use crate::display::SizeInfo;
 use crate::gl;
 use crate::gl::types::*;
 
 mod atlas;
 pub mod platform;
 
-use atlas::{Atlas, ATLAS_SIZE};
-
-/// Maximum items to be drawn in a batch.
-const BATCH_MAX: usize = 0x1_0000;
+use atlas::Atlas;
 
 #[derive(Debug)]
 pub struct Glsl3Renderer {
@@ -28,9 +23,8 @@ pub struct Glsl3Renderer {
     ebo: GLuint,
     vbo_instance: GLuint,
     atlas: Atlas,
-    active_tex: GLuint,
-    tex: GLuint,
     instances: Vec<InstanceData>,
+    tex_id: GLuint,
 }
 
 impl Glsl3Renderer {
@@ -104,6 +98,33 @@ impl Glsl3Renderer {
             };
         }
 
+        let mut id: GLuint = 0;
+        unsafe {
+            gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
+            gl::GenTextures(1, &mut id);
+            gl::BindTexture(gl::TEXTURE_2D, id);
+            // Use RGBA texture for both normal and emoji glyphs, since it has no performance
+            // impact.
+            gl::TexImage2D(
+                gl::TEXTURE_2D,
+                0,
+                gl::RGBA as i32,
+                1024,
+                1024,
+                0,
+                gl::RGBA,
+                gl::UNSIGNED_BYTE,
+                ptr::null(),
+            );
+
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+        }
+
         unsafe {
             let shader_program = gl::CreateProgram();
             let vertex_shader = Shader::new(gl::VERTEX_SHADER, include_str!("../res/text.v.glsl"));
@@ -124,21 +145,14 @@ impl Glsl3Renderer {
                 vao,
                 ebo,
                 vbo_instance,
-                atlas: Atlas::new(ATLAS_SIZE),
-                active_tex: 0,
-                tex: 0,
+                atlas: Atlas::new(),
                 instances: Vec::new(),
+                tex_id: id,
             }
         }
     }
 
-    pub fn draw_cells(
-        &mut self,
-        size_info: &SizeInfo,
-        rasterizer: &mut Rasterizer,
-        font_key: FontKey,
-        font_size: Size,
-    ) {
+    pub fn draw_cells(&mut self, rasterizer: &mut Rasterizer, font_key: FontKey, font_size: Size) {
         unsafe {
             gl::Viewport(10, 10, 3436, 2082);
             gl::UseProgram(self.shader_program);

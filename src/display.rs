@@ -126,12 +126,9 @@ impl Display {
     }
 
     pub fn draw(&mut self) {
-        let size_info = self.size_info;
-
-        // Make sure this window's OpenGL context is active.
         self.make_current();
 
-        self.renderer.draw_cells(&size_info, &mut self.rasterizer, self.font_key, self.font_size);
+        self.renderer.draw_cells(&mut self.rasterizer, self.font_key, self.font_size);
 
         // Clearing debug highlights from the previous frame requires full redraw.
         let _ = match (self.surface.deref(), &self.context) {
