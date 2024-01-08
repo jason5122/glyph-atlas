@@ -23,6 +23,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         .header("src/cpp/wrapper.h")
         .clang_arg("-xc++")
+        .clang_arg("-libc++")
         .generate()
         .expect("Unable to generate bindings");
     bindings

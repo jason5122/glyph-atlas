@@ -58,25 +58,7 @@ impl Glsl3Renderer {
         let mut vbo_instance: GLuint = 0;
 
         unsafe {
-            renderer_setup();
-
-            // gl::Enable(gl::BLEND);
-            // gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
-            // gl::DepthMask(gl::FALSE);
-
-            gl::GenVertexArrays(1, &mut vao);
-            gl::GenBuffers(1, &mut ebo);
-            gl::GenBuffers(1, &mut vbo_instance);
-            gl::BindVertexArray(vao);
-
-            let indices: [u32; 6] = [0, 1, 3, 1, 2, 3];
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-            gl::BufferData(
-                gl::ELEMENT_ARRAY_BUFFER,
-                6 * 4,
-                indices.as_ptr() as *const _,
-                gl::STATIC_DRAW,
-            );
+            renderer_setup(&mut vao, &mut ebo, &mut vbo_instance);
 
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo_instance);
             gl::BufferData(gl::ARRAY_BUFFER, 4096 * 28, ptr::null(), gl::STREAM_DRAW);
