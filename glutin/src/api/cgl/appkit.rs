@@ -49,7 +49,7 @@ unsafe impl RefEncode for CGLContextObj {
 
 extern_class!(
     #[derive(Debug, PartialEq, Eq, Hash)]
-    pub(crate) struct NSOpenGLContext;
+    pub struct NSOpenGLContext;
 
     unsafe impl ClassType for NSOpenGLContext {
         type Super = NSObject;
@@ -65,7 +65,7 @@ extern_methods!(
             unsafe { msg_send_id![Self::class(), currentContext] }
         }
 
-        pub(crate) fn newWithFormat_shareContext(
+        pub fn newWithFormat_shareContext(
             format: &NSOpenGLPixelFormat,
             share: Option<&NSOpenGLContext>,
         ) -> Option<Id<Self, Shared>> {
@@ -82,15 +82,15 @@ extern_methods!(
         pub(crate) fn clearCurrentContext();
 
         #[sel(makeCurrentContext)]
-        pub(crate) fn makeCurrentContext(&self);
+        pub fn makeCurrentContext(&self);
 
         #[sel(update)]
         pub(crate) fn update(&self);
 
         #[sel(flushBuffer)]
-        pub(crate) fn flushBuffer(&self);
+        pub fn flushBuffer(&self);
 
-        pub(crate) fn view(&self) -> Option<Id<NSObject, Shared>> {
+        pub fn view(&self) -> Option<Id<NSObject, Shared>> {
             unsafe { msg_send_id![self, view] }
         }
 

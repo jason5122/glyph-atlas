@@ -9,7 +9,7 @@ fn main() {
     cc::Build::new().cpp(true).flag("-std=c++17").files(src.iter()).compile("objcpp");
     let bindings = bindgen::Builder::default()
         .header("src/objcpp/wrapper.h")
-        // .clang_arg("-xobjective-c++")
+        .clang_arg("-xobjective-c++")
         .generate()
         .expect("Unable to generate bindings");
     bindings

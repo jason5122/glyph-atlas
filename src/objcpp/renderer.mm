@@ -22,6 +22,31 @@ struct InstanceData {
     float uv_height;
 };
 
+void cgl_context() {
+    CGLPixelFormatAttribute attribs[] = {
+        kCGLPFAColorSize,
+        static_cast<CGLPixelFormatAttribute>(24),
+        kCGLPFAAlphaSize,
+        static_cast<CGLPixelFormatAttribute>(8),
+        kCGLPFAAccelerated,
+        kCGLPFANoRecovery,
+        kCGLPFADoubleBuffer,
+        kCGLPFAAllowOfflineRenderers,
+        kCGLPFAOpenGLProfile,
+        static_cast<CGLPixelFormatAttribute>(kCGLOGLPVersion_3_2_Core),
+        static_cast<CGLPixelFormatAttribute>(0),
+    };
+
+    CGLPixelFormatObj pixelFormat = nullptr;
+    GLint numFormats = 0;
+    CGLChoosePixelFormat(attribs, &pixelFormat, &numFormats);
+
+    CGLContextObj context = nullptr;
+    CGLCreateContext(pixelFormat, nullptr, &context);
+
+    CGLSetCurrentContext(context);
+}
+
 void draw() {
     NSView* view = [[NSView alloc] init];
 
@@ -166,6 +191,8 @@ void draw() {
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 1);
 
     std::cout << glGetString(GL_VERSION) << '\n';
+
+    glFlush();
 }
 
 GLuint setup_shaders() {

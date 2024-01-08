@@ -1,3 +1,5 @@
+use std::ffi::c_void;
+
 use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, EventLoop, EventLoopBuilder};
 use winit::platform::run_return::EventLoopExtRunReturn;
@@ -9,16 +11,17 @@ use glutin::context::{
 };
 use glutin::display::{Display, DisplayApiPreference};
 use glutin::prelude::*;
-use glutin::surface::{Surface, WindowSurface};
+use glutin::surface::{AsRawSurface, RawSurface, Surface, WindowSurface};
 
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+
+use objc2::{msg_send, msg_send_id, ClassType};
 
 use glutin::api::cgl::appkit::*;
 
 mod platform;
 
-include!(concat!(env!("OUT_DIR"), "/cpp_bindings.rs"));
-// include!(concat!(env!("OUT_DIR"), "/objc_bindings.rs"));
+include!(concat!(env!("OUT_DIR"), "/objcpp_bindings.rs"));
 
 fn main() {
     let window_event_loop = EventLoopBuilder::<Event>::with_user_event().build();
@@ -72,7 +75,6 @@ impl Processor {
         attrs.push(NSOpenGLPFAOpenGLProfile);
         attrs.push(NSOpenGLProfileVersion4_1Core);
         attrs.push(0);
-
         let pixel_format = unsafe { NSOpenGLPixelFormat::newWithAttributes(&attrs) };
 
         Processor { event_loop, window, context, surface }
@@ -81,9 +83,19 @@ impl Processor {
     pub fn run(mut self) {
         self.event_loop.run_return(move |event, _, control_flow| match event {
             WinitEvent::Resumed => {
+                let raw_surface: *const c_void = match self.surface.raw_surface() {
+                    RawSurface::Cgl(hi) => hi,
+                };
+
+                unsafe {
+                    let raw_context = raw_surface.cast::<NSOpenGLContext>().as_ref().unwrap();
+                    // raw_context.makeCurrentContext();
+                }
+
                 let _ = self.context.make_current(&self.surface);
 
                 unsafe {
+                    // cgl_context();
                     draw();
                 }
 
