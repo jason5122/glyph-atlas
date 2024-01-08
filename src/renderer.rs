@@ -12,6 +12,8 @@ use crate::gl::types::*;
 
 pub mod platform;
 
+include!(concat!(env!("OUT_DIR"), "/cpp_bindings.rs"));
+
 #[derive(Debug)]
 #[repr(C)]
 pub struct InstanceData {
@@ -56,9 +58,11 @@ impl Glsl3Renderer {
         let mut vbo_instance: GLuint = 0;
 
         unsafe {
-            gl::Enable(gl::BLEND);
-            gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
-            gl::DepthMask(gl::FALSE);
+            renderer_setup();
+
+            // gl::Enable(gl::BLEND);
+            // gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
+            // gl::DepthMask(gl::FALSE);
 
             gl::GenVertexArrays(1, &mut vao);
             gl::GenBuffers(1, &mut ebo);
