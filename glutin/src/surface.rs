@@ -13,12 +13,6 @@ use crate::private::{gl_api_dispatch, Sealed};
 
 #[cfg(cgl_backend)]
 use crate::api::cgl::surface::Surface as CglSurface;
-#[cfg(egl_backend)]
-use crate::api::egl::surface::Surface as EglSurface;
-#[cfg(glx_backend)]
-use crate::api::glx::surface::Surface as GlxSurface;
-#[cfg(wgl_backend)]
-use crate::api::wgl::surface::Surface as WglSurface;
 
 /// A trait to group common operations on the surface.
 pub trait GlSurface<T: SurfaceTypeTrait>: Sealed {
@@ -266,18 +260,6 @@ pub enum SurfaceType {
 /// ```
 #[derive(Debug)]
 pub enum Surface<T: SurfaceTypeTrait> {
-    /// The EGL surface.
-    #[cfg(egl_backend)]
-    Egl(EglSurface<T>),
-
-    /// The GLX surface.
-    #[cfg(glx_backend)]
-    Glx(GlxSurface<T>),
-
-    /// The WGL surface.
-    #[cfg(wgl_backend)]
-    Wgl(WglSurface<T>),
-
     /// The CGL surface.
     #[cfg(cgl_backend)]
     Cgl(CglSurface<T>),
@@ -305,20 +287,8 @@ impl<T: SurfaceTypeTrait> GlSurface<T> for Surface<T> {
 
     fn swap_buffers(&self, context: &Self::Context) -> Result<()> {
         match (self, context) {
-            #[cfg(egl_backend)]
-            (Self::Egl(surface), PossiblyCurrentContext::Egl(context)) => {
-                surface.swap_buffers(context)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(surface), PossiblyCurrentContext::Glx(context)) => {
-                surface.swap_buffers(context)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(surface), PossiblyCurrentContext::Cgl(context)) => {
-                surface.swap_buffers(context)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(surface), PossiblyCurrentContext::Wgl(context)) => {
                 surface.swap_buffers(context)
             },
             _ => unreachable!(),
@@ -327,20 +297,8 @@ impl<T: SurfaceTypeTrait> GlSurface<T> for Surface<T> {
 
     fn set_swap_interval(&self, context: &Self::Context, interval: SwapInterval) -> Result<()> {
         match (self, context) {
-            #[cfg(egl_backend)]
-            (Self::Egl(surface), PossiblyCurrentContext::Egl(context)) => {
-                surface.set_swap_interval(context, interval)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(surface), PossiblyCurrentContext::Glx(context)) => {
-                surface.set_swap_interval(context, interval)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(surface), PossiblyCurrentContext::Cgl(context)) => {
-                surface.set_swap_interval(context, interval)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(surface), PossiblyCurrentContext::Wgl(context)) => {
                 surface.set_swap_interval(context, interval)
             },
             _ => unreachable!(),
@@ -349,20 +307,8 @@ impl<T: SurfaceTypeTrait> GlSurface<T> for Surface<T> {
 
     fn is_current(&self, context: &Self::Context) -> bool {
         match (self, context) {
-            #[cfg(egl_backend)]
-            (Self::Egl(surface), PossiblyCurrentContext::Egl(context)) => {
-                surface.is_current(context)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(surface), PossiblyCurrentContext::Glx(context)) => {
-                surface.is_current(context)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(surface), PossiblyCurrentContext::Cgl(context)) => {
-                surface.is_current(context)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(surface), PossiblyCurrentContext::Wgl(context)) => {
                 surface.is_current(context)
             },
             _ => unreachable!(),
@@ -371,20 +317,8 @@ impl<T: SurfaceTypeTrait> GlSurface<T> for Surface<T> {
 
     fn is_current_draw(&self, context: &Self::Context) -> bool {
         match (self, context) {
-            #[cfg(egl_backend)]
-            (Self::Egl(surface), PossiblyCurrentContext::Egl(context)) => {
-                surface.is_current_draw(context)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(surface), PossiblyCurrentContext::Glx(context)) => {
-                surface.is_current_draw(context)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(surface), PossiblyCurrentContext::Cgl(context)) => {
-                surface.is_current_draw(context)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(surface), PossiblyCurrentContext::Wgl(context)) => {
                 surface.is_current_draw(context)
             },
             _ => unreachable!(),
@@ -393,20 +327,8 @@ impl<T: SurfaceTypeTrait> GlSurface<T> for Surface<T> {
 
     fn is_current_read(&self, context: &Self::Context) -> bool {
         match (self, context) {
-            #[cfg(egl_backend)]
-            (Self::Egl(surface), PossiblyCurrentContext::Egl(context)) => {
-                surface.is_current_read(context)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(surface), PossiblyCurrentContext::Glx(context)) => {
-                surface.is_current_read(context)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(surface), PossiblyCurrentContext::Cgl(context)) => {
-                surface.is_current_read(context)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(surface), PossiblyCurrentContext::Wgl(context)) => {
                 surface.is_current_read(context)
             },
             _ => unreachable!(),
@@ -418,20 +340,8 @@ impl<T: SurfaceTypeTrait> GlSurface<T> for Surface<T> {
         Self::SurfaceType: ResizeableSurface,
     {
         match (self, context) {
-            #[cfg(egl_backend)]
-            (Self::Egl(surface), PossiblyCurrentContext::Egl(context)) => {
-                surface.resize(context, width, height)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(surface), PossiblyCurrentContext::Glx(context)) => {
-                surface.resize(context, width, height)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(surface), PossiblyCurrentContext::Cgl(context)) => {
-                surface.resize(context, width, height)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(surface), PossiblyCurrentContext::Wgl(context)) => {
                 surface.resize(context, width, height)
             },
             _ => unreachable!(),
@@ -491,18 +401,6 @@ pub enum NativePixmap {
 /// Handle to the raw OpenGL surface.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RawSurface {
-    /// A pointer to EGLSurface.
-    #[cfg(egl_backend)]
-    Egl(*const std::ffi::c_void),
-
-    /// GLXDrawable.
-    #[cfg(glx_backend)]
-    Glx(u64),
-
-    /// HWND
-    #[cfg(wgl_backend)]
-    Wgl(*const std::ffi::c_void),
-
     /// Pointer to `NSView`.
     #[cfg(cgl_backend)]
     Cgl(*const std::ffi::c_void),

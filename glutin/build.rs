@@ -16,9 +16,6 @@ fn main() {
         wayland_platform: { all(feature = "wayland", free_unix, not(wasm_platform)) },
 
         // Backends.
-        egl_backend: { all(feature = "egl", any(windows, unix), not(apple), not(wasm_platform)) },
-        glx_backend: { all(feature = "glx", x11_platform, not(wasm_platform)) },
-        wgl_backend: { all(feature = "wgl", windows, not(wasm_platform)) },
         cgl_backend: { all(macos_platform, not(wasm_platform)) },
     }
 }

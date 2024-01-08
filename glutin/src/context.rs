@@ -15,18 +15,6 @@ use crate::surface::{GlSurface, Surface, SurfaceTypeTrait};
 use crate::api::cgl::context::{
     NotCurrentContext as NotCurrentCglContext, PossiblyCurrentContext as PossiblyCurrentCglContext,
 };
-#[cfg(egl_backend)]
-use crate::api::egl::context::{
-    NotCurrentContext as NotCurrentEglContext, PossiblyCurrentContext as PossiblyCurrentEglContext,
-};
-#[cfg(glx_backend)]
-use crate::api::glx::context::{
-    NotCurrentContext as NotCurrentGlxContext, PossiblyCurrentContext as PossiblyCurrentGlxContext,
-};
-#[cfg(wgl_backend)]
-use crate::api::wgl::context::{
-    NotCurrentContext as NotCurrentWglContext, PossiblyCurrentContext as PossiblyCurrentWglContext,
-};
 
 /// A trait to group common context operations.
 pub trait GlContext: Sealed {
@@ -303,17 +291,6 @@ pub enum ContextApi {
     Gles(Option<Version>),
 }
 
-#[cfg(any(egl_backend, glx_backend, wgl_backend))]
-impl ContextApi {
-    pub(crate) fn version(&self) -> Option<Version> {
-        match self {
-            Self::OpenGl(version) => *version,
-            Self::Gles(version) => *version,
-            _ => None,
-        }
-    }
-}
-
 impl Default for ContextApi {
     fn default() -> Self {
         Self::OpenGl(None)
@@ -359,35 +336,8 @@ impl Default for ReleaseBehavior {
     }
 }
 
-/// A context that is known to be not current on the current thread.
-///
-/// This type is a safe wrapper around the context to indicate that it could be
-/// `Send` to the different thread, since the context must be not current before
-/// doing so.
-///
-/// ```no_run
-/// fn test_send<T: Send>() {}
-/// test_send::<glutin::context::NotCurrentContext>();
-/// ```
-/// However it's not `Sync`.
-/// ```compile_fail
-/// fn test_sync<T: Sync>() {}
-/// test_sync::<glutin::context::NotCurrentContext>();
-/// ```
 #[derive(Debug)]
 pub enum NotCurrentContext {
-    /// The EGL context.
-    #[cfg(egl_backend)]
-    Egl(NotCurrentEglContext),
-
-    /// The GLX context.
-    #[cfg(glx_backend)]
-    Glx(NotCurrentGlxContext),
-
-    /// The WGL context.
-    #[cfg(wgl_backend)]
-    Wgl(NotCurrentWglContext),
-
     /// The CGL context.
     #[cfg(cgl_backend)]
     Cgl(NotCurrentCglContext),
