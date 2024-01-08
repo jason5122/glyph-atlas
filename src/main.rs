@@ -1,14 +1,23 @@
+use std::mem::ManuallyDrop;
+use std::ops::Deref;
+
 use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, EventLoop, EventLoopBuilder};
 use winit::platform::run_return::EventLoopExtRunReturn;
-use winit::window::WindowBuilder;
+use winit::window::{Window, WindowBuilder};
 
-use raw_window_handle::HasRawDisplayHandle;
+use glutin::context::{
+    NotCurrentGlContextSurfaceAccessor, PossiblyCurrentContext,
+    PossiblyCurrentContextGlSurfaceAccessor, PossiblyCurrentGlContext,
+};
+use glutin::prelude::*;
+use glutin::surface::{Surface, WindowSurface};
 
-use crate::display::Display;
+use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
-mod display;
 mod platform;
+
+include!(concat!(env!("OUT_DIR"), "/cpp_bindings.rs"));
 
 fn main() {
     let window_event_loop = EventLoopBuilder::<Event>::with_user_event().build();
@@ -19,8 +28,11 @@ fn main() {
 pub struct Event {}
 
 pub struct Processor {
-    display: Display,
+    // display: Display,
     event_loop: EventLoop<Event>,
+    pub window: Window,
+    surface: ManuallyDrop<Surface<WindowSurface>>,
+    context: PossiblyCurrentContext,
 }
 
 impl Processor {
@@ -52,15 +64,38 @@ impl Processor {
         let gl_context =
             platform::create_gl_context(&gl_display, &gl_config, raw_window_handle).unwrap();
 
-        let display = Display::new(window, gl_context);
+        let viewport_size = window.inner_size();
+        let surface =
+            platform::create_gl_surface(&gl_context, viewport_size, window.raw_window_handle());
+        let context = gl_context.make_current(&surface).unwrap();
 
-        Processor { display, event_loop }
+        window.set_visible(true);
+
+        Processor { event_loop, window, context, surface: ManuallyDrop::new(surface) }
     }
 
     pub fn run(mut self) {
         self.event_loop.run_return(move |event, _, control_flow| match event {
             WinitEvent::Resumed => {
-                self.display.draw();
+                if !self.context.is_current() {
+                    self.context
+                        .make_current(&self.surface)
+                        .expect("failed to make context current")
+                }
+
+                let mut vao: GLuint = 0;
+                let mut ebo: GLuint = 0;
+                let mut vbo_instance: GLuint = 0;
+                let mut tex_id: GLuint = 0;
+
+                unsafe {
+                    renderer_setup(&mut vao, &mut ebo, &mut vbo_instance, &mut tex_id);
+                    draw(vao, ebo, vbo_instance, tex_id);
+                }
+
+                let _ = match (self.surface.deref(), &self.context) {
+                    (surface, context) => surface.swap_buffers(context),
+                };
 
                 *control_flow = ControlFlow::Wait;
             },

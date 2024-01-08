@@ -1,5 +1,3 @@
-//! The graphics platform that is used by the renderer.
-
 use std::num::NonZeroU32;
 
 use glutin::config::{ColorBufferType, Config, ConfigTemplateBuilder, GetGlConfig};
@@ -15,7 +13,6 @@ use log::LevelFilter;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
 use winit::dpi::PhysicalSize;
 
-/// Create the GL display.
 pub fn create_gl_display(
     raw_display_handle: RawDisplayHandle,
     _raw_window_handle: Option<RawWindowHandle>,
