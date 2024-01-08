@@ -46,14 +46,10 @@ impl Processor {
         let window_builder = WindowBuilder::new();
         let window = window_builder
             .with_title("GlyphAtlas")
-            .with_theme(None)
             .with_visible(false)
-            .with_transparent(false)
             .with_maximized(true)
-            .with_fullscreen(None)
             .build(&event_loop)
             .unwrap();
-        window.set_transparent(false);
 
         let gl_context =
             platform::create_gl_context(&gl_display, &gl_config, raw_window_handle).unwrap();
