@@ -59,26 +59,6 @@ impl Glsl3Renderer {
 
         unsafe {
             renderer_setup(&mut vao, &mut ebo, &mut vbo_instance);
-
-            gl::BindBuffer(gl::ARRAY_BUFFER, vbo_instance);
-            gl::BufferData(gl::ARRAY_BUFFER, 4096 * 28, ptr::null(), gl::STREAM_DRAW);
-
-            gl::VertexAttribPointer(0, 2, gl::UNSIGNED_SHORT, gl::FALSE, 28, 0 as *const _);
-            gl::EnableVertexAttribArray(0);
-            gl::VertexAttribDivisor(0, 1);
-
-            gl::VertexAttribPointer(1, 4, gl::SHORT, gl::FALSE, 28, 4 as *const _);
-            gl::EnableVertexAttribArray(1);
-            gl::VertexAttribDivisor(1, 1);
-
-            gl::VertexAttribPointer(2, 4, gl::FLOAT, gl::FALSE, 28, 12 as *const _);
-            gl::EnableVertexAttribArray(2);
-            gl::VertexAttribDivisor(2, 1);
-
-            // Cleanup.
-            gl::BindVertexArray(0);
-            gl::BindBuffer(gl::ARRAY_BUFFER, 0);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
         }
 
         macro_rules! cstr {
