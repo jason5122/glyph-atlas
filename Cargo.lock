@@ -442,7 +442,6 @@ dependencies = [
  "glutin",
  "log",
  "raw-window-handle",
- "unicode-width",
  "winit",
 ]
 

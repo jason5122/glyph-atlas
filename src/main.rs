@@ -1,6 +1,3 @@
-use std::mem::ManuallyDrop;
-use std::ops::Deref;
-
 use winit::event::Event as WinitEvent;
 use winit::event_loop::{ControlFlow, EventLoop, EventLoopBuilder};
 use winit::platform::run_return::EventLoopExtRunReturn;
@@ -28,17 +25,13 @@ fn main() {
 pub struct Event {}
 
 pub struct Processor {
-    // display: Display,
     event_loop: EventLoop<Event>,
     pub window: Window,
-    surface: ManuallyDrop<Surface<WindowSurface>>,
+    surface: Surface<WindowSurface>,
     context: PossiblyCurrentContext,
 }
 
 impl Processor {
-    /// Create a new event processor.
-    ///
-    /// Takes a writer which is expected to be hooked up to the write end of a PTY.
     pub fn new(event_loop: EventLoop<Event>) -> Processor {
         let raw_display_handle = event_loop.raw_display_handle();
 
@@ -71,7 +64,7 @@ impl Processor {
 
         window.set_visible(true);
 
-        Processor { event_loop, window, context, surface: ManuallyDrop::new(surface) }
+        Processor { event_loop, window, context, surface }
     }
 
     pub fn run(mut self) {
@@ -93,9 +86,7 @@ impl Processor {
                     draw(vao, ebo, vbo_instance, tex_id);
                 }
 
-                let _ = match (self.surface.deref(), &self.context) {
-                    (surface, context) => surface.swap_buffers(context),
-                };
+                let _ = &self.surface.swap_buffers(&self.context);
 
                 *control_flow = ControlFlow::Wait;
             },
