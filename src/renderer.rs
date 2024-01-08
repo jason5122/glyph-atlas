@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::ffi::CString;
 use std::ptr;
 
@@ -9,10 +10,27 @@ use glutin::display::{GetGlDisplay, GlDisplay};
 use crate::gl;
 use crate::gl::types::*;
 
-mod atlas;
 pub mod platform;
 
-use atlas::Atlas;
+#[derive(Debug)]
+#[repr(C)]
+pub struct InstanceData {
+    // Coords.
+    pub col: u16,
+    pub row: u16,
+
+    // Glyph offset and size.
+    pub left: i16,
+    pub top: i16,
+    pub width: i16,
+    pub height: i16,
+
+    // UV offset and scale.
+    pub uv_left: f32,
+    pub uv_bot: f32,
+    pub uv_width: f32,
+    pub uv_height: f32,
+}
 
 #[derive(Debug)]
 pub struct Glsl3Renderer {
@@ -22,8 +40,6 @@ pub struct Glsl3Renderer {
     vao: GLuint,
     ebo: GLuint,
     vbo_instance: GLuint,
-    atlas: Atlas,
-    instances: Vec<InstanceData>,
     tex_id: GLuint,
 }
 
@@ -42,8 +58,6 @@ impl Glsl3Renderer {
         unsafe {
             gl::Enable(gl::BLEND);
             gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
-
-            // Disable depth mask, as the renderer never uses depth tests.
             gl::DepthMask(gl::FALSE);
 
             gl::GenVertexArrays(1, &mut vao);
@@ -51,11 +65,7 @@ impl Glsl3Renderer {
             gl::GenBuffers(1, &mut vbo_instance);
             gl::BindVertexArray(vao);
 
-            // ---------------------
-            // Set up element buffer
-            // ---------------------
             let indices: [u32; 6] = [0, 1, 3, 1, 2, 3];
-
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
@@ -64,23 +74,17 @@ impl Glsl3Renderer {
                 gl::STATIC_DRAW,
             );
 
-            // ----------------------------
-            // Setup vertex instance buffer
-            // ----------------------------
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo_instance);
             gl::BufferData(gl::ARRAY_BUFFER, 4096 * 28, ptr::null(), gl::STREAM_DRAW);
 
-            // Coords.
             gl::VertexAttribPointer(0, 2, gl::UNSIGNED_SHORT, gl::FALSE, 28, 0 as *const _);
             gl::EnableVertexAttribArray(0);
             gl::VertexAttribDivisor(0, 1);
 
-            // Glyph offset and size.
             gl::VertexAttribPointer(1, 4, gl::SHORT, gl::FALSE, 28, 4 as *const _);
             gl::EnableVertexAttribArray(1);
             gl::VertexAttribDivisor(1, 1);
 
-            // UV offset.
             gl::VertexAttribPointer(2, 4, gl::FLOAT, gl::FALSE, 28, 12 as *const _);
             gl::EnableVertexAttribArray(2);
             gl::VertexAttribDivisor(2, 1);
@@ -138,17 +142,7 @@ impl Glsl3Renderer {
             let u_projection = gl::GetUniformLocation(shader_program, cstr!("projection").as_ptr());
             let u_cell_dim = gl::GetUniformLocation(shader_program, cstr!("cellDim").as_ptr());
 
-            Self {
-                shader_program,
-                u_projection,
-                u_cell_dim,
-                vao,
-                ebo,
-                vbo_instance,
-                atlas: Atlas::new(),
-                instances: Vec::new(),
-                tex_id: id,
-            }
+            Self { shader_program, u_projection, u_cell_dim, vao, ebo, vbo_instance, tex_id: id }
         }
     }
 
@@ -171,9 +165,38 @@ impl Glsl3Renderer {
 
         let glyph_key = GlyphKey { font_key, size: font_size, character: 'E' };
         let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
-        let glyph = self.atlas.insert_inner(&rasterized);
 
-        self.instances.push(InstanceData {
+        let buffer = &rasterized.buffer;
+        let pixels = buffer.len() / 3;
+        println!("len = {}", buffer.len());
+        for i in 0..pixels {
+            let offset = i * 3;
+            println!("{} {} {}", buffer[offset], buffer[offset + 1], buffer[offset + 2]);
+        }
+
+        unsafe {
+            gl::BindTexture(gl::TEXTURE_2D, self.tex_id);
+
+            let buffer = Cow::Borrowed(&rasterized.buffer);
+
+            gl::TexSubImage2D(
+                gl::TEXTURE_2D,
+                0,
+                0,
+                0,
+                15,
+                24,
+                gl::RGB,
+                gl::UNSIGNED_BYTE,
+                buffer.as_ptr() as *const _,
+            );
+
+            gl::BindTexture(gl::TEXTURE_2D, 0);
+        }
+
+        let mut instances = Vec::new();
+
+        instances.push(InstanceData {
             col: 0,
             row: 10,
 
@@ -188,11 +211,9 @@ impl Glsl3Renderer {
             uv_height: 0.0234375,
         });
 
-        println!("self.tex = {}", glyph.tex_id);
-
         unsafe {
-            gl::BufferSubData(gl::ARRAY_BUFFER, 0, 28, self.instances.as_ptr() as *const _);
-            gl::BindTexture(gl::TEXTURE_2D, glyph.tex_id);
+            gl::BufferSubData(gl::ARRAY_BUFFER, 0, 28, instances.as_ptr() as *const _);
+            gl::BindTexture(gl::TEXTURE_2D, self.tex_id);
             gl::DrawElementsInstanced(gl::TRIANGLES, 6, gl::UNSIGNED_INT, ptr::null(), 1);
         }
     }
@@ -222,24 +243,4 @@ impl Shader {
 
         shader
     }
-}
-
-#[derive(Debug)]
-#[repr(C)]
-pub struct InstanceData {
-    // Coords.
-    pub col: u16,
-    pub row: u16,
-
-    // Glyph offset and size.
-    pub left: i16,
-    pub top: i16,
-    pub width: i16,
-    pub height: i16,
-
-    // UV offset and scale.
-    pub uv_left: f32,
-    pub uv_bot: f32,
-    pub uv_width: f32,
-    pub uv_height: f32,
 }
