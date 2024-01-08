@@ -84,35 +84,50 @@ impl Glsl3Renderer {
             let mut index = 0;
             let mut size = 0;
 
-            macro_rules! add_attr {
-                ($count:expr, $gl_type:expr, $type:ty) => {
-                    gl::VertexAttribPointer(
-                        index,
-                        $count,
-                        $gl_type,
-                        gl::FALSE,
-                        size_of::<InstanceData>() as i32,
-                        size as *const _,
-                    );
-                    gl::EnableVertexAttribArray(index);
-                    gl::VertexAttribDivisor(index, 1);
-
-                    #[allow(unused_assignments)]
-                    {
-                        size += $count * size_of::<$type>();
-                        index += 1;
-                    }
-                };
-            }
-
             // Coords.
-            add_attr!(2, gl::UNSIGNED_SHORT, u16);
+            gl::VertexAttribPointer(
+                index,
+                2,
+                gl::UNSIGNED_SHORT,
+                gl::FALSE,
+                size_of::<InstanceData>() as i32,
+                size as *const _,
+            );
+            gl::EnableVertexAttribArray(index);
+            gl::VertexAttribDivisor(index, 1);
+
+            size += 2 * size_of::<u16>();
+            index += 1;
 
             // Glyph offset and size.
-            add_attr!(4, gl::SHORT, i16);
+            gl::VertexAttribPointer(
+                index,
+                4,
+                gl::SHORT,
+                gl::FALSE,
+                size_of::<InstanceData>() as i32,
+                size as *const _,
+            );
+            gl::EnableVertexAttribArray(index);
+            gl::VertexAttribDivisor(index, 1);
+
+            size += 4 * size_of::<i16>();
+            index += 1;
 
             // UV offset.
-            add_attr!(4, gl::FLOAT, f32);
+            gl::VertexAttribPointer(
+                index,
+                4,
+                gl::FLOAT,
+                gl::FALSE,
+                size_of::<InstanceData>() as i32,
+                size as *const _,
+            );
+            gl::EnableVertexAttribArray(index);
+            gl::VertexAttribDivisor(index, 1);
+
+            size += 4 * size_of::<f32>();
+            index += 1;
 
             // Cleanup.
             gl::BindVertexArray(0);
