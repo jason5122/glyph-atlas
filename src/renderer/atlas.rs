@@ -120,20 +120,20 @@ impl Atlas {
         let uv_height = height as f32 / self.height as f32;
         let uv_width = width as f32 / self.width as f32;
 
-        if glyph.character == 'E' {
-            println!(
-                "{} {} {} {} {} {} {} {} {}",
-                self.id,
-                glyph.top as i16,
-                glyph.left as i16,
-                width as i16,
-                height as i16,
-                uv_bot,
-                uv_left,
-                uv_width,
-                uv_height
-            );
-        }
+        // if glyph.character == 'E' {
+        //     println!(
+        //         "atlas: {} {} {} {} {} {} {} {} {}",
+        //         self.id,
+        //         glyph.top as i16,
+        //         glyph.left as i16,
+        //         width as i16,
+        //         height as i16,
+        //         uv_bot,
+        //         uv_left,
+        //         uv_width,
+        //         uv_height
+        //     );
+        // }
 
         Glyph {
             tex_id: self.id,

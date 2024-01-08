@@ -179,8 +179,6 @@ impl Glsl3Renderer {
     ) {
         unsafe {
             gl::UseProgram(self.shader_program);
-            gl::Uniform2f(self.u_cell_dim, size_info.cell_width, size_info.cell_height);
-
             gl::BindVertexArray(self.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
             gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
@@ -189,25 +187,25 @@ impl Glsl3Renderer {
 
         let strs = vec![
             "E",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
-            "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
+            // "Hello world!",
         ];
 
         for (i, s) in strs.iter().enumerate() {
@@ -221,6 +219,20 @@ impl Glsl3Renderer {
                 if self.instances.len() == 0 {
                     self.tex = glyph.tex_id;
                 }
+
+                // println!(
+                //     "InstanceData: {} {} {} {} {} {} {} {} {} {}",
+                //     column as u16,
+                //     line as u16,
+                //     glyph.top,
+                //     glyph.left,
+                //     glyph.width,
+                //     glyph.height,
+                //     glyph.uv_bot,
+                //     glyph.uv_left,
+                //     glyph.uv_width,
+                //     glyph.uv_height,
+                // );
 
                 self.instances.push(InstanceData {
                     col: column as u16,
@@ -238,6 +250,8 @@ impl Glsl3Renderer {
                 });
             }
         }
+
+        println!("self.tex = {}", self.tex);
 
         unsafe {
             gl::BufferSubData(
@@ -274,7 +288,6 @@ impl Glsl3Renderer {
 
             gl::UseProgram(self.shader_program);
 
-            let u_projection = self.u_projection;
             let width = size.width;
             let height = size.height;
             let padding_x = size.padding_x;
@@ -293,7 +306,8 @@ impl Glsl3Renderer {
             let offset_x = -1.;
             let offset_y = 1.;
 
-            gl::Uniform4f(u_projection, offset_x, offset_y, scale_x, scale_y);
+            gl::Uniform4f(self.u_projection, offset_x, offset_y, scale_x, scale_y);
+            gl::Uniform2f(self.u_cell_dim, size.cell_width, size.cell_height);
 
             gl::UseProgram(0);
         }
