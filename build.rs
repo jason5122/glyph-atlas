@@ -19,7 +19,7 @@ fn main() {
 
     println!("cargo:rerun-if-changed=src/cpp/");
     let src = ["src/cpp/renderer.cc"];
-    cc::Build::new().cpp(true).files(src.iter()).compile("mybar");
+    cc::Build::new().cpp(true).flag("-std=c++17").files(src.iter()).compile("mybar");
     let bindings = bindgen::Builder::default()
         .header("src/cpp/wrapper.h")
         .clang_arg("-xc++")

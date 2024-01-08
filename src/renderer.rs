@@ -1,6 +1,5 @@
 use std::borrow::Cow;
 use std::ffi::CString;
-use std::ptr;
 
 use crossfont::{FontKey, GlyphKey, Rasterizer, Size};
 
@@ -37,8 +36,6 @@ pub struct InstanceData {
 #[derive(Debug)]
 pub struct Glsl3Renderer {
     shader_program: GLuint,
-    u_projection: GLint,
-    u_cell_dim: GLint,
     vao: GLuint,
     ebo: GLuint,
     vbo_instance: GLuint,
@@ -79,70 +76,13 @@ impl Glsl3Renderer {
             gl::AttachShader(shader_program, fragment_shader.0);
             gl::LinkProgram(shader_program);
 
-            let u_projection = gl::GetUniformLocation(shader_program, cstr!("projection").as_ptr());
-            let u_cell_dim = gl::GetUniformLocation(shader_program, cstr!("cellDim").as_ptr());
-
-            Self { shader_program, u_projection, u_cell_dim, vao, ebo, vbo_instance, tex_id }
+            Self { shader_program, vao, ebo, vbo_instance, tex_id }
         }
     }
 
     pub fn draw_cells(&mut self, rasterizer: &mut Rasterizer, font_key: FontKey, font_size: Size) {
         unsafe {
-            draw(
-                self.vao,
-                self.ebo,
-                self.vbo_instance,
-                self.tex_id,
-                self.shader_program,
-                self.u_projection,
-                self.u_cell_dim,
-            );
-        }
-
-        let glyph_key = GlyphKey { font_key, size: font_size, character: 'E' };
-        let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
-
-        unsafe {
-            gl::BindTexture(gl::TEXTURE_2D, self.tex_id);
-
-            let buffer = Cow::Borrowed(&rasterized.buffer);
-
-            gl::TexSubImage2D(
-                gl::TEXTURE_2D,
-                0,
-                0,
-                0,
-                15,
-                24,
-                gl::RGB,
-                gl::UNSIGNED_BYTE,
-                buffer.as_ptr() as *const _,
-            );
-
-            gl::BindTexture(gl::TEXTURE_2D, 0);
-        }
-
-        let mut instances = Vec::new();
-
-        instances.push(InstanceData {
-            col: 0,
-            row: 10,
-
-            top: 24,
-            left: 3,
-            width: 15,
-            height: 24,
-
-            uv_bot: 0.0,
-            uv_left: 0.0,
-            uv_width: 0.0146484375,
-            uv_height: 0.0234375,
-        });
-
-        unsafe {
-            gl::BufferSubData(gl::ARRAY_BUFFER, 0, 28, instances.as_ptr() as *const _);
-            gl::BindTexture(gl::TEXTURE_2D, self.tex_id);
-            gl::DrawElementsInstanced(gl::TRIANGLES, 6, gl::UNSIGNED_INT, ptr::null(), 1);
+            draw(self.vao, self.ebo, self.vbo_instance, self.tex_id, self.shader_program);
         }
     }
 }
