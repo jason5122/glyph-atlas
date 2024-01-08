@@ -13,6 +13,8 @@ use glutin::surface::{Surface, WindowSurface};
 
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 
+use glutin::api::cgl::appkit::*;
+
 mod platform;
 
 include!(concat!(env!("OUT_DIR"), "/cpp_bindings.rs"));
@@ -62,6 +64,15 @@ impl Processor {
         let context = gl_context.make_current(&surface).unwrap();
 
         window.set_visible(true);
+
+        let mut attrs = Vec::<NSOpenGLPixelFormatAttribute>::with_capacity(32);
+        attrs.push(NSOpenGLPFAMinimumPolicy);
+        attrs.push(NSOpenGLPFAAllowOfflineRenderers);
+        attrs.push(NSOpenGLPFAOpenGLProfile);
+        attrs.push(NSOpenGLProfileVersion4_1Core);
+        attrs.push(0);
+
+        let pixel_format = unsafe { NSOpenGLPixelFormat::newWithAttributes(&attrs) };
 
         Processor { event_loop, window, context, surface }
     }

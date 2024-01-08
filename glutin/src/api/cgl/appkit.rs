@@ -111,7 +111,7 @@ extern_methods!(
 
 extern_class!(
     #[derive(Debug, PartialEq, Eq, Hash)]
-    pub(crate) struct NSOpenGLPixelFormat;
+    pub struct NSOpenGLPixelFormat;
 
     unsafe impl ClassType for NSOpenGLPixelFormat {
         type Super = NSObject;
@@ -123,7 +123,7 @@ unsafe impl Sync for NSOpenGLPixelFormat {}
 
 extern_methods!(
     unsafe impl NSOpenGLPixelFormat {
-        pub(crate) unsafe fn newWithAttributes(
+        pub unsafe fn newWithAttributes(
             attrs: &[NSOpenGLPixelFormatAttribute],
         ) -> Option<Id<Self, Shared>> {
             unsafe {
@@ -156,47 +156,46 @@ pub(crate) const NSOpenGLCPGPUFragmentProcessing: NSOpenGLContextParameter = 311
 pub(crate) const NSOpenGLCPHasDrawable: NSOpenGLContextParameter = 314;
 pub(crate) const NSOpenGLCPMPSwapsInFlight: NSOpenGLContextParameter = 315;
 
-pub(crate) type NSOpenGLPixelFormatAttribute = u32;
-pub(crate) const NSOpenGLPFAAllRenderers: NSOpenGLPixelFormatAttribute = 1;
-pub(crate) const NSOpenGLPFATripleBuffer: NSOpenGLPixelFormatAttribute = 3;
-pub(crate) const NSOpenGLPFADoubleBuffer: NSOpenGLPixelFormatAttribute = 5;
-pub(crate) const NSOpenGLPFAStereo: NSOpenGLPixelFormatAttribute = 6;
-pub(crate) const NSOpenGLPFAAuxBuffers: NSOpenGLPixelFormatAttribute = 7;
-pub(crate) const NSOpenGLPFAColorSize: NSOpenGLPixelFormatAttribute = 8;
-pub(crate) const NSOpenGLPFAAlphaSize: NSOpenGLPixelFormatAttribute = 11;
-pub(crate) const NSOpenGLPFADepthSize: NSOpenGLPixelFormatAttribute = 12;
-pub(crate) const NSOpenGLPFAStencilSize: NSOpenGLPixelFormatAttribute = 13;
-pub(crate) const NSOpenGLPFAAccumSize: NSOpenGLPixelFormatAttribute = 14;
-pub(crate) const NSOpenGLPFAMinimumPolicy: NSOpenGLPixelFormatAttribute = 51;
-pub(crate) const NSOpenGLPFAMaximumPolicy: NSOpenGLPixelFormatAttribute = 52;
-pub(crate) const NSOpenGLPFAOffScreen: NSOpenGLPixelFormatAttribute = 53;
-pub(crate) const NSOpenGLPFAFullScreen: NSOpenGLPixelFormatAttribute = 54;
-pub(crate) const NSOpenGLPFASampleBuffers: NSOpenGLPixelFormatAttribute = 55;
-pub(crate) const NSOpenGLPFASamples: NSOpenGLPixelFormatAttribute = 56;
-pub(crate) const NSOpenGLPFAAuxDepthStencil: NSOpenGLPixelFormatAttribute = 57;
-pub(crate) const NSOpenGLPFAColorFloat: NSOpenGLPixelFormatAttribute = 58;
-pub(crate) const NSOpenGLPFAMultisample: NSOpenGLPixelFormatAttribute = 59;
-pub(crate) const NSOpenGLPFASupersample: NSOpenGLPixelFormatAttribute = 60;
-pub(crate) const NSOpenGLPFASampleAlpha: NSOpenGLPixelFormatAttribute = 61;
-pub(crate) const NSOpenGLPFARendererID: NSOpenGLPixelFormatAttribute = 70;
-pub(crate) const NSOpenGLPFASingleRenderer: NSOpenGLPixelFormatAttribute = 71;
-pub(crate) const NSOpenGLPFANoRecovery: NSOpenGLPixelFormatAttribute = 72;
-pub(crate) const NSOpenGLPFAAccelerated: NSOpenGLPixelFormatAttribute = 73;
-pub(crate) const NSOpenGLPFAClosestPolicy: NSOpenGLPixelFormatAttribute = 74;
-pub(crate) const NSOpenGLPFARobust: NSOpenGLPixelFormatAttribute = 75;
-pub(crate) const NSOpenGLPFABackingStore: NSOpenGLPixelFormatAttribute = 76;
-pub(crate) const NSOpenGLPFAMPSafe: NSOpenGLPixelFormatAttribute = 78;
-pub(crate) const NSOpenGLPFAWindow: NSOpenGLPixelFormatAttribute = 80;
-pub(crate) const NSOpenGLPFAMultiScreen: NSOpenGLPixelFormatAttribute = 81;
-pub(crate) const NSOpenGLPFACompliant: NSOpenGLPixelFormatAttribute = 83;
-pub(crate) const NSOpenGLPFAScreenMask: NSOpenGLPixelFormatAttribute = 84;
-pub(crate) const NSOpenGLPFAPixelBuffer: NSOpenGLPixelFormatAttribute = 90;
-pub(crate) const NSOpenGLPFARemotePixelBuffer: NSOpenGLPixelFormatAttribute = 91;
-pub(crate) const NSOpenGLPFAAllowOfflineRenderers: NSOpenGLPixelFormatAttribute = 96;
-pub(crate) const NSOpenGLPFAAcceleratedCompute: NSOpenGLPixelFormatAttribute = 97;
-pub(crate) const NSOpenGLPFAOpenGLProfile: NSOpenGLPixelFormatAttribute = 99;
-pub(crate) const NSOpenGLPFAVirtualScreenCount: NSOpenGLPixelFormatAttribute = 128;
-// OpenGL Profiles
-pub(crate) const NSOpenGLProfileVersionLegacy: NSOpenGLPixelFormatAttribute = 0x1000;
-pub(crate) const NSOpenGLProfileVersion3_2Core: NSOpenGLPixelFormatAttribute = 0x3200;
-pub(crate) const NSOpenGLProfileVersion4_1Core: NSOpenGLPixelFormatAttribute = 0x4100;
+pub type NSOpenGLPixelFormatAttribute = u32;
+pub const NSOpenGLPFAAllRenderers: NSOpenGLPixelFormatAttribute = 1;
+pub const NSOpenGLPFATripleBuffer: NSOpenGLPixelFormatAttribute = 3;
+pub const NSOpenGLPFADoubleBuffer: NSOpenGLPixelFormatAttribute = 5;
+pub const NSOpenGLPFAStereo: NSOpenGLPixelFormatAttribute = 6;
+pub const NSOpenGLPFAAuxBuffers: NSOpenGLPixelFormatAttribute = 7;
+pub const NSOpenGLPFAColorSize: NSOpenGLPixelFormatAttribute = 8;
+pub const NSOpenGLPFAAlphaSize: NSOpenGLPixelFormatAttribute = 11;
+pub const NSOpenGLPFADepthSize: NSOpenGLPixelFormatAttribute = 12;
+pub const NSOpenGLPFAStencilSize: NSOpenGLPixelFormatAttribute = 13;
+pub const NSOpenGLPFAAccumSize: NSOpenGLPixelFormatAttribute = 14;
+pub const NSOpenGLPFAMinimumPolicy: NSOpenGLPixelFormatAttribute = 51;
+pub const NSOpenGLPFAMaximumPolicy: NSOpenGLPixelFormatAttribute = 52;
+pub const NSOpenGLPFAOffScreen: NSOpenGLPixelFormatAttribute = 53;
+pub const NSOpenGLPFAFullScreen: NSOpenGLPixelFormatAttribute = 54;
+pub const NSOpenGLPFASampleBuffers: NSOpenGLPixelFormatAttribute = 55;
+pub const NSOpenGLPFASamples: NSOpenGLPixelFormatAttribute = 56;
+pub const NSOpenGLPFAAuxDepthStencil: NSOpenGLPixelFormatAttribute = 57;
+pub const NSOpenGLPFAColorFloat: NSOpenGLPixelFormatAttribute = 58;
+pub const NSOpenGLPFAMultisample: NSOpenGLPixelFormatAttribute = 59;
+pub const NSOpenGLPFASupersample: NSOpenGLPixelFormatAttribute = 60;
+pub const NSOpenGLPFASampleAlpha: NSOpenGLPixelFormatAttribute = 61;
+pub const NSOpenGLPFARendererID: NSOpenGLPixelFormatAttribute = 70;
+pub const NSOpenGLPFASingleRenderer: NSOpenGLPixelFormatAttribute = 71;
+pub const NSOpenGLPFANoRecovery: NSOpenGLPixelFormatAttribute = 72;
+pub const NSOpenGLPFAAccelerated: NSOpenGLPixelFormatAttribute = 73;
+pub const NSOpenGLPFAClosestPolicy: NSOpenGLPixelFormatAttribute = 74;
+pub const NSOpenGLPFARobust: NSOpenGLPixelFormatAttribute = 75;
+pub const NSOpenGLPFABackingStore: NSOpenGLPixelFormatAttribute = 76;
+pub const NSOpenGLPFAMPSafe: NSOpenGLPixelFormatAttribute = 78;
+pub const NSOpenGLPFAWindow: NSOpenGLPixelFormatAttribute = 80;
+pub const NSOpenGLPFAMultiScreen: NSOpenGLPixelFormatAttribute = 81;
+pub const NSOpenGLPFACompliant: NSOpenGLPixelFormatAttribute = 83;
+pub const NSOpenGLPFAScreenMask: NSOpenGLPixelFormatAttribute = 84;
+pub const NSOpenGLPFAPixelBuffer: NSOpenGLPixelFormatAttribute = 90;
+pub const NSOpenGLPFARemotePixelBuffer: NSOpenGLPixelFormatAttribute = 91;
+pub const NSOpenGLPFAAllowOfflineRenderers: NSOpenGLPixelFormatAttribute = 96;
+pub const NSOpenGLPFAAcceleratedCompute: NSOpenGLPixelFormatAttribute = 97;
+pub const NSOpenGLPFAOpenGLProfile: NSOpenGLPixelFormatAttribute = 99;
+pub const NSOpenGLPFAVirtualScreenCount: NSOpenGLPixelFormatAttribute = 128;
+pub const NSOpenGLProfileVersionLegacy: NSOpenGLPixelFormatAttribute = 0x1000;
+pub const NSOpenGLProfileVersion3_2Core: NSOpenGLPixelFormatAttribute = 0x3200;
+pub const NSOpenGLProfileVersion4_1Core: NSOpenGLPixelFormatAttribute = 0x4100;
