@@ -407,18 +407,6 @@ impl<T: SurfaceTypeTrait> NotCurrentGlContextSurfaceAccessor<T> for NotCurrentCo
 
     fn make_current(self, surface: &Self::Surface) -> Result<Self::PossiblyCurrentContext> {
         match (self, surface) {
-            #[cfg(egl_backend)]
-            (Self::Egl(context), Surface::Egl(surface)) => {
-                Ok(PossiblyCurrentContext::Egl(context.make_current(surface)?))
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(context), Surface::Glx(surface)) => {
-                Ok(PossiblyCurrentContext::Glx(context.make_current(surface)?))
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(context), Surface::Wgl(surface)) => {
-                Ok(PossiblyCurrentContext::Wgl(context.make_current(surface)?))
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(context), Surface::Cgl(surface)) => {
                 Ok(PossiblyCurrentContext::Cgl(context.make_current(surface)?))
@@ -433,18 +421,6 @@ impl<T: SurfaceTypeTrait> NotCurrentGlContextSurfaceAccessor<T> for NotCurrentCo
         surface_read: &Self::Surface,
     ) -> Result<Self::PossiblyCurrentContext> {
         match (self, surface_draw, surface_read) {
-            #[cfg(egl_backend)]
-            (Self::Egl(context), Surface::Egl(draw), Surface::Egl(read)) => {
-                Ok(PossiblyCurrentContext::Egl(context.make_current_draw_read(draw, read)?))
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(context), Surface::Glx(draw), Surface::Glx(read)) => {
-                Ok(PossiblyCurrentContext::Glx(context.make_current_draw_read(draw, read)?))
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(context), Surface::Wgl(draw), Surface::Wgl(read)) => {
-                Ok(PossiblyCurrentContext::Wgl(context.make_current_draw_read(draw, read)?))
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(context), Surface::Cgl(draw), Surface::Cgl(read)) => {
                 Ok(PossiblyCurrentContext::Cgl(context.make_current_draw_read(draw, read)?))
@@ -484,36 +460,8 @@ impl AsRawContext for NotCurrentContext {
 
 impl Sealed for NotCurrentContext {}
 
-/// A context that is possibly current on the current thread.
-///
-/// The context that could be current on the current thread can neither be
-/// [`Send`] nor [`Sync`]. In case you need to use it on a different thread
-/// [make it not current].
-/// ```compile_fail
-/// fn test_send<T: Send>() {}
-/// test_send::<glutin::context::PossiblyCurrentContext>();
-/// ```
-///
-/// ```compile_fail
-/// fn test_sync<T: Sync>() {}
-/// test_sync::<glutin::context::PossiblyCurrentContext>();
-/// ```
-///
-/// [make it not current]: crate::context::PossiblyCurrentGlContext::make_not_current
 #[derive(Debug)]
 pub enum PossiblyCurrentContext {
-    /// The EGL context.
-    #[cfg(egl_backend)]
-    Egl(PossiblyCurrentEglContext),
-
-    /// The GLX context.
-    #[cfg(glx_backend)]
-    Glx(PossiblyCurrentGlxContext),
-
-    /// The WGL context.
-    #[cfg(wgl_backend)]
-    Wgl(PossiblyCurrentWglContext),
-
     /// The CGL context.
     #[cfg(cgl_backend)]
     Cgl(PossiblyCurrentCglContext),
@@ -538,12 +486,6 @@ impl<T: SurfaceTypeTrait> PossiblyCurrentContextGlSurfaceAccessor<T> for Possibl
 
     fn make_current(&self, surface: &Self::Surface) -> Result<()> {
         match (self, surface) {
-            #[cfg(egl_backend)]
-            (Self::Egl(context), Surface::Egl(surface)) => context.make_current(surface),
-            #[cfg(glx_backend)]
-            (Self::Glx(context), Surface::Glx(surface)) => context.make_current(surface),
-            #[cfg(wgl_backend)]
-            (Self::Wgl(context), Surface::Wgl(surface)) => context.make_current(surface),
             #[cfg(cgl_backend)]
             (Self::Cgl(context), Surface::Cgl(surface)) => context.make_current(surface),
             _ => unreachable!(),
@@ -556,18 +498,6 @@ impl<T: SurfaceTypeTrait> PossiblyCurrentContextGlSurfaceAccessor<T> for Possibl
         surface_read: &Self::Surface,
     ) -> Result<()> {
         match (self, surface_draw, surface_read) {
-            #[cfg(egl_backend)]
-            (Self::Egl(context), Surface::Egl(draw), Surface::Egl(read)) => {
-                context.make_current_draw_read(draw, read)
-            },
-            #[cfg(glx_backend)]
-            (Self::Glx(context), Surface::Glx(draw), Surface::Glx(read)) => {
-                context.make_current_draw_read(draw, read)
-            },
-            #[cfg(wgl_backend)]
-            (Self::Wgl(context), Surface::Wgl(draw), Surface::Wgl(read)) => {
-                context.make_current_draw_read(draw, read)
-            },
             #[cfg(cgl_backend)]
             (Self::Cgl(context), Surface::Cgl(draw), Surface::Cgl(read)) => {
                 context.make_current_draw_read(draw, read)
@@ -610,36 +540,7 @@ impl Sealed for PossiblyCurrentContext {}
 /// Raw context.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RawContext {
-    /// Raw EGL context.
-    #[cfg(egl_backend)]
-    Egl(*const ffi::c_void),
-
-    /// Raw GLX context.
-    #[cfg(glx_backend)]
-    Glx(*const ffi::c_void),
-
-    /// HGLRC pointer.
-    #[cfg(wgl_backend)]
-    Wgl(*const ffi::c_void),
-
     /// Pointer to NSOpenGLContext.
     #[cfg(cgl_backend)]
     Cgl(*const ffi::c_void),
-}
-
-/// Pick `GlProfile` and `Version` based on the provided params.
-#[cfg(any(egl_backend, glx_backend, wgl_backend))]
-pub(crate) fn pick_profile(
-    profile: Option<GlProfile>,
-    version: Option<Version>,
-) -> (GlProfile, Version) {
-    match (profile, version) {
-        (Some(GlProfile::Core), Some(version)) => (GlProfile::Core, version),
-        (Some(GlProfile::Compatibility), Some(version)) => (GlProfile::Compatibility, version),
-        (None, Some(version)) if version >= Version::new(3, 3) => (GlProfile::Core, version),
-        (None, Some(version)) => (GlProfile::Compatibility, version),
-        (Some(GlProfile::Core), None) => (GlProfile::Core, Version::new(3, 3)),
-        (Some(GlProfile::Compatibility), None) => (GlProfile::Compatibility, Version::new(2, 1)),
-        (None, None) => (GlProfile::Core, Version::new(3, 3)),
-    }
 }

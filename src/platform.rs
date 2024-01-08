@@ -1,9 +1,8 @@
 use std::num::NonZeroU32;
 
 use glutin::config::{Config, ConfigTemplateBuilder, GetGlConfig};
-use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentContext, Version};
+use glutin::context::NotCurrentContext;
 use glutin::display::{Display, GetGlDisplay};
-use glutin::error::Result as GlutinResult;
 use glutin::prelude::*;
 use glutin::surface::{Surface, SurfaceAttributesBuilder, WindowSurface};
 
@@ -33,18 +32,6 @@ pub fn pick_gl_config(
     }
 
     Err(String::from("failed to find suitable GL configuration."))
-}
-
-pub fn create_gl_context(
-    gl_display: &Display,
-    gl_config: &Config,
-    raw_window_handle: Option<RawWindowHandle>,
-) -> GlutinResult<NotCurrentContext> {
-    let profile = ContextAttributesBuilder::new()
-        .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
-        .build(raw_window_handle);
-
-    unsafe { gl_display.create_context(gl_config, &profile) }
 }
 
 pub fn create_gl_surface(

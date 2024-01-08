@@ -9,17 +9,8 @@ use raw_window_handle::RawWindowHandle;
 use crate::display::{Display, GetGlDisplay};
 use crate::private::{gl_api_dispatch, Sealed};
 
-#[cfg(x11_platform)]
-use crate::platform::x11::{X11GlConfigExt, X11VisualInfo};
-
 #[cfg(cgl_backend)]
 use crate::api::cgl::config::Config as CglConfig;
-#[cfg(egl_backend)]
-use crate::api::egl::config::Config as EglConfig;
-#[cfg(glx_backend)]
-use crate::api::glx::config::Config as GlxConfig;
-#[cfg(wgl_backend)]
-use crate::api::wgl::config::Config as WglConfig;
 
 /// The trait to group all common config option.
 pub trait GlConfig: Sealed {
@@ -419,18 +410,6 @@ pub enum ColorBufferType {
 /// [`Context`]: crate::context::NotCurrentContext
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Config {
-    /// The EGL config.
-    #[cfg(egl_backend)]
-    Egl(EglConfig),
-
-    /// The GLX config.
-    #[cfg(glx_backend)]
-    Glx(GlxConfig),
-
-    /// The WGL config.
-    #[cfg(wgl_backend)]
-    Wgl(WglConfig),
-
     /// The CGL config.
     #[cfg(cgl_backend)]
     Cgl(CglConfig),
@@ -502,18 +481,6 @@ impl Sealed for Config {}
 /// Raw config.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RawConfig {
-    /// Raw EGL config.
-    #[cfg(egl_backend)]
-    Egl(*const std::ffi::c_void),
-
-    /// Raw GLX config.
-    #[cfg(glx_backend)]
-    Glx(*const std::ffi::c_void),
-
-    /// WGL pixel format index.
-    #[cfg(wgl_backend)]
-    Wgl(i32),
-
     /// NSOpenGLPixelFormat.
     #[cfg(cgl_backend)]
     Cgl(*const std::ffi::c_void),

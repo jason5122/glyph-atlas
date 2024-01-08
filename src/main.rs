@@ -4,8 +4,8 @@ use winit::platform::run_return::EventLoopExtRunReturn;
 use winit::window::{Window, WindowBuilder};
 
 use glutin::context::{
-    NotCurrentGlContextSurfaceAccessor, PossiblyCurrentContext,
-    PossiblyCurrentContextGlSurfaceAccessor,
+    ContextApi, ContextAttributesBuilder, NotCurrentGlContextSurfaceAccessor,
+    PossiblyCurrentContext, PossiblyCurrentContextGlSurfaceAccessor, Version,
 };
 use glutin::display::{Display, DisplayApiPreference};
 use glutin::prelude::*;
@@ -51,8 +51,10 @@ impl Processor {
             .build(&event_loop)
             .unwrap();
 
-        let gl_context =
-            platform::create_gl_context(&gl_display, &gl_config, raw_window_handle).unwrap();
+        let profile = ContextAttributesBuilder::new()
+            .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
+            .build(raw_window_handle);
+        let gl_context = unsafe { gl_display.create_context(&gl_config, &profile).unwrap() };
 
         let viewport_size = window.inner_size();
         let surface =
