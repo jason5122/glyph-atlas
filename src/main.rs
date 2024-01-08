@@ -18,7 +18,7 @@ use glutin::api::cgl::appkit::*;
 mod platform;
 
 include!(concat!(env!("OUT_DIR"), "/cpp_bindings.rs"));
-include!(concat!(env!("OUT_DIR"), "/objc_bindings.rs"));
+// include!(concat!(env!("OUT_DIR"), "/objc_bindings.rs"));
 
 fn main() {
     let window_event_loop = EventLoopBuilder::<Event>::with_user_event().build();
@@ -85,8 +85,6 @@ impl Processor {
 
                 unsafe {
                     draw();
-                    let n = zoinks();
-                    println!("{}", n);
                 }
 
                 let _ = &self.surface.swap_buffers(&self.context);

@@ -1,8 +1,9 @@
-#include "renderer.h"
-#include <OpenGL/gl3.h>
-#include <cstdint>
-#include <iostream>
-#include <vector>
+#import "renderer.h"
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/gl3.h>
+#import <cstdint>
+#import <iostream>
+#import <vector>
 
 GLuint setup_shaders();
 
@@ -22,6 +23,8 @@ struct InstanceData {
 };
 
 void draw() {
+    NSView* view = [[NSView alloc] init];
+
     GLuint vao = 0;
     GLuint ebo = 0;
     GLuint vbo_instance = 0;
