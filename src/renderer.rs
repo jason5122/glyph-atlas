@@ -65,7 +65,7 @@ impl Glsl3Renderer {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
             gl::BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
-                (6 * size_of::<u32>()) as isize,
+                6 * 4,
                 indices.as_ptr() as *const _,
                 gl::STATIC_DRAW,
             );
@@ -74,60 +74,22 @@ impl Glsl3Renderer {
             // Setup vertex instance buffer
             // ----------------------------
             gl::BindBuffer(gl::ARRAY_BUFFER, vbo_instance);
-            gl::BufferData(
-                gl::ARRAY_BUFFER,
-                (BATCH_MAX * size_of::<InstanceData>()) as isize,
-                ptr::null(),
-                gl::STREAM_DRAW,
-            );
-
-            let mut index = 0;
-            let mut size = 0;
+            gl::BufferData(gl::ARRAY_BUFFER, 4096 * 28, ptr::null(), gl::STREAM_DRAW);
 
             // Coords.
-            gl::VertexAttribPointer(
-                index,
-                2,
-                gl::UNSIGNED_SHORT,
-                gl::FALSE,
-                size_of::<InstanceData>() as i32,
-                size as *const _,
-            );
-            gl::EnableVertexAttribArray(index);
-            gl::VertexAttribDivisor(index, 1);
-
-            size += 2 * size_of::<u16>();
-            index += 1;
+            gl::VertexAttribPointer(0, 2, gl::UNSIGNED_SHORT, gl::FALSE, 28, 0 as *const _);
+            gl::EnableVertexAttribArray(0);
+            gl::VertexAttribDivisor(0, 1);
 
             // Glyph offset and size.
-            gl::VertexAttribPointer(
-                index,
-                4,
-                gl::SHORT,
-                gl::FALSE,
-                size_of::<InstanceData>() as i32,
-                size as *const _,
-            );
-            gl::EnableVertexAttribArray(index);
-            gl::VertexAttribDivisor(index, 1);
-
-            size += 4 * size_of::<i16>();
-            index += 1;
+            gl::VertexAttribPointer(1, 4, gl::SHORT, gl::FALSE, 28, 4 as *const _);
+            gl::EnableVertexAttribArray(1);
+            gl::VertexAttribDivisor(1, 1);
 
             // UV offset.
-            gl::VertexAttribPointer(
-                index,
-                4,
-                gl::FLOAT,
-                gl::FALSE,
-                size_of::<InstanceData>() as i32,
-                size as *const _,
-            );
-            gl::EnableVertexAttribArray(index);
-            gl::VertexAttribDivisor(index, 1);
-
-            size += 4 * size_of::<f32>();
-            index += 1;
+            gl::VertexAttribPointer(2, 4, gl::FLOAT, gl::FALSE, 28, 12 as *const _);
+            gl::EnableVertexAttribArray(2);
+            gl::VertexAttribDivisor(2, 1);
 
             // Cleanup.
             gl::BindVertexArray(0);
@@ -178,6 +140,14 @@ impl Glsl3Renderer {
         font_size: Size,
     ) {
         unsafe {
+            gl::Viewport(10, 10, 3436, 2082);
+            gl::UseProgram(self.shader_program);
+            gl::Uniform4f(self.u_projection, -1.0, 1.0, 0.0005820722, -0.00096061477);
+            gl::Uniform2f(self.u_cell_dim, 20.0, 40.0);
+            gl::UseProgram(0);
+        }
+
+        unsafe {
             gl::UseProgram(self.shader_program);
             gl::BindVertexArray(self.vao);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
@@ -185,131 +155,31 @@ impl Glsl3Renderer {
             gl::ActiveTexture(gl::TEXTURE0);
         }
 
-        let strs = vec![
-            "E",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-            // "Hello world!",
-        ];
+        let glyph_key = GlyphKey { font_key, size: font_size, character: 'E' };
+        let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
+        let glyph = self.atlas.insert_inner(&rasterized);
 
-        for (i, s) in strs.iter().enumerate() {
-            for (column, character) in s.chars().enumerate() {
-                let line = 10 + i;
+        self.instances.push(InstanceData {
+            col: 0,
+            row: 10,
 
-                let glyph_key = GlyphKey { font_key, size: font_size, character };
-                let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
-                let glyph = self.atlas.insert_inner(&rasterized);
+            top: 24,
+            left: 3,
+            width: 15,
+            height: 24,
 
-                if self.instances.len() == 0 {
-                    self.tex = glyph.tex_id;
-                }
+            uv_bot: 0.0,
+            uv_left: 0.0,
+            uv_width: 0.0146484375,
+            uv_height: 0.0234375,
+        });
 
-                // println!(
-                //     "InstanceData: {} {} {} {} {} {} {} {} {} {}",
-                //     column as u16,
-                //     line as u16,
-                //     glyph.top,
-                //     glyph.left,
-                //     glyph.width,
-                //     glyph.height,
-                //     glyph.uv_bot,
-                //     glyph.uv_left,
-                //     glyph.uv_width,
-                //     glyph.uv_height,
-                // );
-
-                self.instances.push(InstanceData {
-                    col: column as u16,
-                    row: line as u16,
-
-                    top: glyph.top,
-                    left: glyph.left,
-                    width: glyph.width,
-                    height: glyph.height,
-
-                    uv_bot: glyph.uv_bot,
-                    uv_left: glyph.uv_left,
-                    uv_width: glyph.uv_width,
-                    uv_height: glyph.uv_height,
-                });
-            }
-        }
-
-        println!("self.tex = {}", self.tex);
+        println!("self.tex = {}", glyph.tex_id);
 
         unsafe {
-            gl::BufferSubData(
-                gl::ARRAY_BUFFER,
-                0,
-                (self.instances.len() * size_of::<InstanceData>()) as isize,
-                self.instances.as_ptr() as *const _,
-            );
-
-            // Bind texture if necessary.
-            // if self.active_tex != self.tex {
-            gl::BindTexture(gl::TEXTURE_2D, self.tex);
-            //     self.active_tex = self.tex;
-            // }
-
-            gl::DrawElementsInstanced(
-                gl::TRIANGLES,
-                6,
-                gl::UNSIGNED_INT,
-                ptr::null(),
-                self.instances.len() as GLsizei,
-            );
-        }
-    }
-
-    pub fn resize(&self, size: &SizeInfo) {
-        unsafe {
-            gl::Viewport(
-                size.padding_x as i32,
-                size.padding_y as i32,
-                size.width as i32 - 2 * size.padding_x as i32,
-                size.height as i32 - 2 * size.padding_y as i32,
-            );
-
-            gl::UseProgram(self.shader_program);
-
-            let width = size.width;
-            let height = size.height;
-            let padding_x = size.padding_x;
-            let padding_y = size.padding_y;
-
-            // Bounds check.
-            if (width as u32) < (2 * padding_x as u32) || (height as u32) < (2 * padding_y as u32) {
-                return;
-            }
-
-            // Compute scale and offset factors, from pixel to ndc space. Y is inverted.
-            //   [0, width - 2 * padding_x] to [-1, 1]
-            //   [height - 2 * padding_y, 0] to [-1, 1]
-            let scale_x = 2. / (width - 2. * padding_x);
-            let scale_y = -2. / (height - 2. * padding_y);
-            let offset_x = -1.;
-            let offset_y = 1.;
-
-            gl::Uniform4f(self.u_projection, offset_x, offset_y, scale_x, scale_y);
-            gl::Uniform2f(self.u_cell_dim, size.cell_width, size.cell_height);
-
-            gl::UseProgram(0);
+            gl::BufferSubData(gl::ARRAY_BUFFER, 0, 28, self.instances.as_ptr() as *const _);
+            gl::BindTexture(gl::TEXTURE_2D, glyph.tex_id);
+            gl::DrawElementsInstanced(gl::TRIANGLES, 6, gl::UNSIGNED_INT, ptr::null(), 1);
         }
     }
 }

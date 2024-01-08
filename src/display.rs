@@ -105,9 +105,6 @@ impl Display {
             5. * (window.scale_factor() as f32),
         );
 
-        // Update OpenGL projection.
-        renderer.resize(&size_info);
-
         window.set_visible(true);
 
         Self {
