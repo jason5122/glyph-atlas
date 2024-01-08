@@ -41,6 +41,12 @@ impl Display {
             return Err(ErrorKind::NotSupported("robustness is not supported with CGL").into());
         }
 
+        if share_context.is_some() {
+            println!("{}", "yo???");
+        } else {
+            println!("damn");
+        }
+
         let config = config.clone();
         let raw = NSOpenGLContext::newWithFormat_shareContext(&config.inner.raw, share_context)
             .ok_or(ErrorKind::BadConfig)?;

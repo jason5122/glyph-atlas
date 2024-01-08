@@ -7,7 +7,7 @@ use winit::window::{Window, WindowBuilder};
 
 use glutin::context::{
     ContextApi, ContextAttributesBuilder, NotCurrentGlContextSurfaceAccessor,
-    PossiblyCurrentContext, PossiblyCurrentContextGlSurfaceAccessor, Version,
+    PossiblyCurrentContext, PossiblyCurrentContextGlSurfaceAccessor, RawContext, Version,
 };
 use glutin::display::{Display, DisplayApiPreference};
 use glutin::prelude::*;
@@ -18,6 +18,7 @@ use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use objc2::{msg_send, msg_send_id, ClassType};
 
 use glutin::api::cgl::appkit::*;
+use glutin::api::cgl::display::Display as CglDisplay;
 
 mod platform;
 
@@ -62,13 +63,7 @@ impl Processor {
             .build(raw_window_handle);
         let gl_context = unsafe { gl_display.create_context(&gl_config, &profile).unwrap() };
 
-        let viewport_size = window.inner_size();
-        let surface =
-            platform::create_gl_surface(&gl_context, viewport_size, window.raw_window_handle());
-        let context = gl_context.make_current(&surface).unwrap();
-
-        window.set_visible(true);
-
+        // Custom
         let mut attrs = Vec::<NSOpenGLPixelFormatAttribute>::with_capacity(32);
         attrs.push(NSOpenGLPFAMinimumPolicy);
         attrs.push(NSOpenGLPFAAllowOfflineRenderers);
@@ -76,6 +71,19 @@ impl Processor {
         attrs.push(NSOpenGLProfileVersion4_1Core);
         attrs.push(0);
         let pixel_format = unsafe { NSOpenGLPixelFormat::newWithAttributes(&attrs) };
+
+        let ooo = unsafe { CglDisplay::new(raw_display_handle).unwrap() };
+
+        let huh = NSOpenGLContext::newWithFormat_shareContext(&pixel_format.unwrap(), None);
+        // huh.unwrap().makeCurrentContext();
+        // End of custom
+
+        let viewport_size = window.inner_size();
+        let surface =
+            platform::create_gl_surface(&gl_context, viewport_size, window.raw_window_handle());
+        let context = gl_context.make_current(&surface).unwrap();
+
+        window.set_visible(true);
 
         Processor { event_loop, window, context, surface }
     }

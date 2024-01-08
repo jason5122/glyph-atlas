@@ -219,7 +219,7 @@ pub struct ContextAttributes {
 
     pub(crate) api: Option<ContextApi>,
 
-    pub(crate) shared_context: Option<RawContext>,
+    pub shared_context: Option<RawContext>,
 
     pub(crate) raw_window_handle: Option<RawWindowHandle>,
 }
