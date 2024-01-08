@@ -5,7 +5,7 @@ use winit::window::{Window, WindowBuilder};
 
 use glutin::context::{
     NotCurrentGlContextSurfaceAccessor, PossiblyCurrentContext,
-    PossiblyCurrentContextGlSurfaceAccessor, PossiblyCurrentGlContext,
+    PossiblyCurrentContextGlSurfaceAccessor,
 };
 use glutin::prelude::*;
 use glutin::surface::{Surface, WindowSurface};
@@ -70,20 +70,10 @@ impl Processor {
     pub fn run(mut self) {
         self.event_loop.run_return(move |event, _, control_flow| match event {
             WinitEvent::Resumed => {
-                if !self.context.is_current() {
-                    self.context
-                        .make_current(&self.surface)
-                        .expect("failed to make context current")
-                }
-
-                let mut vao: GLuint = 0;
-                let mut ebo: GLuint = 0;
-                let mut vbo_instance: GLuint = 0;
-                let mut tex_id: GLuint = 0;
+                let _ = self.context.make_current(&self.surface);
 
                 unsafe {
-                    renderer_setup(&mut vao, &mut ebo, &mut vbo_instance, &mut tex_id);
-                    draw(vao, ebo, vbo_instance, tex_id);
+                    draw();
                 }
 
                 let _ = &self.surface.swap_buffers(&self.context);

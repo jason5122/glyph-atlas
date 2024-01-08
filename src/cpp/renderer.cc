@@ -21,21 +21,26 @@ struct InstanceData {
     float uv_height;
 };
 
-void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance, GLuint* tex_id) {
+void draw() {
+    GLuint vao = 0;
+    GLuint ebo = 0;
+    GLuint vbo_instance = 0;
+    GLuint tex_id = 0;
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
     glDepthMask(GL_FALSE);
 
-    glGenVertexArrays(1, vao);
-    glGenBuffers(1, ebo);
-    glGenBuffers(1, vbo_instance);
-    glBindVertexArray(*vao);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &ebo);
+    glGenBuffers(1, &vbo_instance);
+    glBindVertexArray(vao);
 
     GLuint indices[] = {0, 1, 3, 1, 2, 3};
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * 4, indices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ARRAY_BUFFER, *vbo_instance);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_instance);
     glBufferData(GL_ARRAY_BUFFER, 4096 * 28, nullptr, GL_STREAM_DRAW);
 
     glVertexAttribPointer(0, 2, GL_UNSIGNED_SHORT, GL_FALSE, 28, (void*)0);
@@ -55,8 +60,8 @@ void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance, GLuint* tex_
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glGenTextures(1, tex_id);
-    glBindTexture(GL_TEXTURE_2D, *tex_id);
+    glGenTextures(1, &tex_id);
+    glBindTexture(GL_TEXTURE_2D, tex_id);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
@@ -66,9 +71,7 @@ void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance, GLuint* tex_
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-}
 
-void draw(GLuint vao, GLuint ebo, GLuint vbo_instance, GLuint tex_id) {
     GLuint shader_program = setup_shaders();
 
     GLint u_projection = glGetUniformLocation(shader_program, "projection");
@@ -153,7 +156,7 @@ void draw(GLuint vao, GLuint ebo, GLuint vbo_instance, GLuint tex_id) {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     std::vector<InstanceData> instances;
-    instances.push_back(InstanceData{0, 10, 24, 3, 15, 24, 0.0, 0.0, 0.0146484375, 0.0234375});
+    instances.push_back(InstanceData{20, 20, 24, 3, 15, 24, 0.0, 0.0, 0.0146484375, 0.0234375});
 
     glBufferSubData(GL_ARRAY_BUFFER, 0, 28, instances.data());
     glBindTexture(GL_TEXTURE_2D, tex_id);

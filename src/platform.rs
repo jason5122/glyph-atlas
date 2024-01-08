@@ -1,9 +1,7 @@
 use std::num::NonZeroU32;
 
 use glutin::config::{ColorBufferType, Config, ConfigTemplateBuilder, GetGlConfig};
-use glutin::context::{
-    ContextApi, ContextAttributesBuilder, GlProfile, NotCurrentContext, Version,
-};
+use glutin::context::{ContextApi, ContextAttributesBuilder, NotCurrentContext, Version};
 use glutin::display::{Display, DisplayApiPreference, GetGlDisplay};
 use glutin::error::Result as GlutinResult;
 use glutin::prelude::*;
@@ -69,22 +67,10 @@ pub fn create_gl_context(
     raw_window_handle: Option<RawWindowHandle>,
 ) -> GlutinResult<NotCurrentContext> {
     let debug = log::max_level() >= LevelFilter::Debug;
-    let mut profiles = [
-        ContextAttributesBuilder::new()
-            .with_debug(debug)
-            .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
-            .build(raw_window_handle),
-        // Try gles before OpenGL 2.1 as it tends to be more stable.
-        ContextAttributesBuilder::new()
-            .with_debug(debug)
-            .with_context_api(ContextApi::Gles(Some(Version::new(2, 0))))
-            .build(raw_window_handle),
-        ContextAttributesBuilder::new()
-            .with_debug(debug)
-            .with_profile(GlProfile::Compatibility)
-            .with_context_api(ContextApi::OpenGl(Some(Version::new(2, 1))))
-            .build(raw_window_handle),
-    ]
+    let mut profiles = [ContextAttributesBuilder::new()
+        .with_debug(debug)
+        .with_context_api(ContextApi::OpenGl(Some(Version::new(3, 3))))
+        .build(raw_window_handle)]
     .into_iter();
 
     // Try the optimal config first.
