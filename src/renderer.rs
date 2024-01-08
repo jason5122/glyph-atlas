@@ -56,9 +56,10 @@ impl Glsl3Renderer {
         let mut vao: GLuint = 0;
         let mut ebo: GLuint = 0;
         let mut vbo_instance: GLuint = 0;
+        let mut tex_id: GLuint = 0;
 
         unsafe {
-            renderer_setup(&mut vao, &mut ebo, &mut vbo_instance);
+            renderer_setup(&mut vao, &mut ebo, &mut vbo_instance, &mut tex_id);
         }
 
         macro_rules! cstr {
@@ -66,33 +67,6 @@ impl Glsl3Renderer {
                 // This can be optimized into an no-op with pre-allocated NUL-terminated bytes.
                 std::ffi::CStr::from_ptr(concat!($s, "\0").as_ptr().cast())
             };
-        }
-
-        let mut id: GLuint = 0;
-        unsafe {
-            gl::PixelStorei(gl::UNPACK_ALIGNMENT, 1);
-            gl::GenTextures(1, &mut id);
-            gl::BindTexture(gl::TEXTURE_2D, id);
-            // Use RGBA texture for both normal and emoji glyphs, since it has no performance
-            // impact.
-            gl::TexImage2D(
-                gl::TEXTURE_2D,
-                0,
-                gl::RGBA as i32,
-                1024,
-                1024,
-                0,
-                gl::RGBA,
-                gl::UNSIGNED_BYTE,
-                ptr::null(),
-            );
-
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-            gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-
-            gl::BindTexture(gl::TEXTURE_2D, 0);
         }
 
         unsafe {
@@ -108,25 +82,21 @@ impl Glsl3Renderer {
             let u_projection = gl::GetUniformLocation(shader_program, cstr!("projection").as_ptr());
             let u_cell_dim = gl::GetUniformLocation(shader_program, cstr!("cellDim").as_ptr());
 
-            Self { shader_program, u_projection, u_cell_dim, vao, ebo, vbo_instance, tex_id: id }
+            Self { shader_program, u_projection, u_cell_dim, vao, ebo, vbo_instance, tex_id }
         }
     }
 
     pub fn draw_cells(&mut self, rasterizer: &mut Rasterizer, font_key: FontKey, font_size: Size) {
         unsafe {
-            gl::Viewport(10, 10, 3436, 2082);
-            gl::UseProgram(self.shader_program);
-            gl::Uniform4f(self.u_projection, -1.0, 1.0, 0.0005820722, -0.00096061477);
-            gl::Uniform2f(self.u_cell_dim, 20.0, 40.0);
-            gl::UseProgram(0);
-        }
-
-        unsafe {
-            gl::UseProgram(self.shader_program);
-            gl::BindVertexArray(self.vao);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
-            gl::ActiveTexture(gl::TEXTURE0);
+            draw(
+                self.vao,
+                self.ebo,
+                self.vbo_instance,
+                self.tex_id,
+                self.shader_program,
+                self.u_projection,
+                self.u_cell_dim,
+            );
         }
 
         let glyph_key = GlyphKey { font_key, size: font_size, character: 'E' };

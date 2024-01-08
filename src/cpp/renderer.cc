@@ -1,7 +1,7 @@
 #include "renderer.h"
 #include <OpenGL/gl3.h>
 
-void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance) {
+void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance, GLuint* tex_id) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC1_COLOR, GL_ONE_MINUS_SRC1_COLOR);
     glDepthMask(GL_FALSE);
@@ -33,4 +33,32 @@ void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance) {
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glGenTextures(1, tex_id);
+    glBindTexture(GL_TEXTURE_2D, *tex_id);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1024, 1024, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void draw(GLuint vao, GLuint ebo, GLuint vbo_instance, GLuint tex_id, GLuint shader_program,
+          GLint u_projection, GLint u_cell_dim) {
+    glViewport(10, 10, 3436, 2082);
+    glUseProgram(shader_program);
+    glUniform4f(u_projection, -1.0, 1.0, 0.0005820722, -0.00096061477);
+    glUniform2f(u_cell_dim, 20.0, 40.0);
+    glUseProgram(0);
+
+    glUseProgram(shader_program);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_instance);
+    glActiveTexture(GL_TEXTURE0);
 }
