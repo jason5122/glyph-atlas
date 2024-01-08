@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 
+GLuint setup_shaders();
+
 struct InstanceData {
     uint16_t col;
     uint16_t row;
@@ -66,7 +68,9 @@ void renderer_setup(GLuint* vao, GLuint* ebo, GLuint* vbo_instance, GLuint* tex_
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void draw(GLuint vao, GLuint ebo, GLuint vbo_instance, GLuint tex_id, GLuint shader_program) {
+void draw(GLuint vao, GLuint ebo, GLuint vbo_instance, GLuint tex_id) {
+    GLuint shader_program = setup_shaders();
+
     GLint u_projection = glGetUniformLocation(shader_program, "projection");
     GLint u_cell_dim = glGetUniformLocation(shader_program, "cellDim");
 
@@ -156,4 +160,80 @@ void draw(GLuint vao, GLuint ebo, GLuint vbo_instance, GLuint tex_id, GLuint sha
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, 1);
 
     std::cout << glGetString(GL_VERSION) << '\n';
+}
+
+GLuint setup_shaders() {
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    const GLchar* vertSource = R"(
+    #version 330 core
+
+// Cell properties.
+layout(location = 0) in vec2 gridCoords;
+
+// Glyph properties.
+layout(location = 1) in vec4 glyph;
+
+// uv mapping.
+layout(location = 2) in vec4 uv;
+
+out vec2 TexCoords;
+
+// Terminal properties
+uniform vec2 cellDim;
+uniform vec4 projection;
+
+void main() {
+    vec2 glyphOffset = glyph.xy;
+    vec2 glyphSize = glyph.zw;
+    vec2 uvOffset = uv.xy;
+    vec2 uvSize = uv.zw;
+    vec2 projectionOffset = projection.xy;
+    vec2 projectionScale = projection.zw;
+
+    // Compute vertex corner position
+    vec2 position;
+    position.x = (gl_VertexID == 0 || gl_VertexID == 1) ? 1. : 0.;
+    position.y = (gl_VertexID == 0 || gl_VertexID == 3) ? 0. : 1.;
+
+    // Position of cell from top-left
+    vec2 cellPosition = cellDim * gridCoords;
+
+    glyphOffset.y = cellDim.y - glyphOffset.y;
+
+    vec2 finalPosition = cellPosition + glyphSize * position + glyphOffset;
+    gl_Position = vec4(projectionOffset + projectionScale * finalPosition, 0.0, 1.0);
+
+    TexCoords = uvOffset + position * uvSize;
+}
+)";
+    const GLchar* fragSource = R"(
+    #version 330 core
+
+in vec2 TexCoords;
+
+layout(location = 0, index = 0) out vec4 color;
+layout(location = 0, index = 1) out vec4 alphaMask;
+
+uniform sampler2D mask;
+
+void main() {
+    vec3 textColor = texture(mask, TexCoords).rgb;
+    alphaMask = vec4(textColor, textColor.r);
+    color = vec4(51 / 255.0, 51 / 255.0, 51 / 255.0, 1.0);
+}
+)";
+    glShaderSource(vertexShader, 1, &vertSource, nullptr);
+    glShaderSource(fragmentShader, 1, &fragSource, nullptr);
+    glCompileShader(vertexShader);
+    glCompileShader(fragmentShader);
+
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertexShader);
+    glAttachShader(shader_program, fragmentShader);
+    glLinkProgram(shader_program);
+
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+    return shader_program;
 }

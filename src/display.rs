@@ -5,7 +5,7 @@ use glutin::context::{NotCurrentContext, PossiblyCurrentContext};
 use glutin::prelude::*;
 use glutin::surface::{Surface, WindowSurface};
 
-use crossfont::{FontDesc, FontKey, Rasterizer, Size};
+use crossfont::{FontDesc, Rasterizer, Size};
 
 use raw_window_handle::HasRawWindowHandle;
 
@@ -55,12 +55,6 @@ pub struct Display {
     surface: ManuallyDrop<Surface<WindowSurface>>,
 
     context: PossiblyCurrentContext,
-
-    rasterizer: Rasterizer,
-
-    font_key: FontKey,
-
-    font_size: Size,
 }
 
 impl Display {
@@ -113,9 +107,6 @@ impl Display {
             surface: ManuallyDrop::new(surface),
             renderer: ManuallyDrop::new(renderer),
             size_info,
-            rasterizer,
-            font_key,
-            font_size,
         }
     }
 
@@ -128,7 +119,7 @@ impl Display {
     pub fn draw(&mut self) {
         self.make_current();
 
-        self.renderer.draw_cells(&mut self.rasterizer, self.font_key, self.font_size);
+        self.renderer.draw_cells();
 
         // Clearing debug highlights from the previous frame requires full redraw.
         let _ = match (self.surface.deref(), &self.context) {
