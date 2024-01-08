@@ -166,14 +166,6 @@ impl Glsl3Renderer {
         let glyph_key = GlyphKey { font_key, size: font_size, character: 'E' };
         let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
 
-        let buffer = &rasterized.buffer;
-        let pixels = buffer.len() / 3;
-        println!("len = {}", buffer.len());
-        for i in 0..pixels {
-            let offset = i * 3;
-            println!("{} {} {}", buffer[offset], buffer[offset + 1], buffer[offset + 2]);
-        }
-
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.tex_id);
 

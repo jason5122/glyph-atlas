@@ -15,7 +15,15 @@ mod gl {
     include!(concat!(env!("OUT_DIR"), "/gl_bindings.rs"));
 }
 
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+fn test_main() {
+    let result = unsafe { barfunc() };
+    assert_eq!(result, 42);
+}
+
 fn main() {
+    test_main();
+
     let window_event_loop = EventLoopBuilder::<Event>::with_user_event().build();
     let processor = Processor::new(window_event_loop);
     processor.run();

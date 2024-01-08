@@ -19,6 +19,8 @@ winit = { version = "0.29.0-beta.0" }
 
 [build-dependencies]
 gl_generator = "0.14.0"
+bindgen = "0.59"
+cc = "1.0"
 
 [profile.release]
 lto = "thin"
