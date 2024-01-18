@@ -22,7 +22,7 @@ const BATCH_MAX: usize = 0x1_0000;
 #[derive(Debug)]
 pub struct Glsl3Renderer {
     shader_program: GLuint,
-    u_projection: GLint,
+    u_resolution: GLint,
     u_cell_dim: GLint,
     vao: GLuint,
     ebo: GLuint,
@@ -152,12 +152,12 @@ impl Glsl3Renderer {
             gl::AttachShader(shader_program, fragment_shader.0);
             gl::LinkProgram(shader_program);
 
-            let u_projection = gl::GetUniformLocation(shader_program, cstr!("projection").as_ptr());
+            let u_resolution = gl::GetUniformLocation(shader_program, cstr!("resolution").as_ptr());
             let u_cell_dim = gl::GetUniformLocation(shader_program, cstr!("cellDim").as_ptr());
 
             Self {
                 shader_program,
-                u_projection,
+                u_resolution,
                 u_cell_dim,
                 vao,
                 ebo,
@@ -268,11 +268,7 @@ impl Glsl3Renderer {
             gl::Viewport(0, 0, size.width as i32, size.height as i32);
 
             gl::UseProgram(self.shader_program);
-
-            let u_projection = self.u_projection;
-            let width = size.width;
-            let height = size.height;
-
+            gl::Uniform2f(self.u_resolution, size.width, size.height);
             gl::UseProgram(0);
         }
     }
