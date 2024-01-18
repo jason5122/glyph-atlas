@@ -9,6 +9,7 @@ uniform sampler2D mask;
 
 void main() {
     vec3 textColor = texture(mask, TexCoords).rgb;
-    alphaMask = vec4(textColor, textColor.r);
+    // alphaMask = vec4(textColor, textColor.r);
+    alphaMask = vec4(1.0, 1.0, 1.0, 1.0);
     color = vec4(51 / 255.0, 51 / 255.0, 51 / 255.0, 1.0);
 }

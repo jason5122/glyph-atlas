@@ -49,6 +49,8 @@ impl Glsl3Renderer {
             gl::Enable(gl::BLEND);
             gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
 
+            gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+
             // Disable depth mask, as the renderer never uses depth tests.
             gl::DepthMask(gl::FALSE);
 
@@ -95,39 +97,6 @@ impl Glsl3Renderer {
             );
             gl::EnableVertexAttribArray(index);
             gl::VertexAttribDivisor(index, 1);
-
-            size += 2 * size_of::<u16>();
-            index += 1;
-
-            // Glyph offset and size.
-            gl::VertexAttribPointer(
-                index,
-                4,
-                gl::SHORT,
-                gl::FALSE,
-                size_of::<InstanceData>() as i32,
-                size as *const _,
-            );
-            gl::EnableVertexAttribArray(index);
-            gl::VertexAttribDivisor(index, 1);
-
-            size += 4 * size_of::<i16>();
-            index += 1;
-
-            // UV offset.
-            gl::VertexAttribPointer(
-                index,
-                4,
-                gl::FLOAT,
-                gl::FALSE,
-                size_of::<InstanceData>() as i32,
-                size as *const _,
-            );
-            gl::EnableVertexAttribArray(index);
-            gl::VertexAttribDivisor(index, 1);
-
-            size += 4 * size_of::<f32>();
-            index += 1;
 
             // Cleanup.
             gl::BindVertexArray(0);
@@ -212,7 +181,7 @@ impl Glsl3Renderer {
 
         for (i, s) in strs.iter().enumerate() {
             for (column, character) in s.chars().enumerate() {
-                let line = 10 + i;
+                let line = 3 + i;
 
                 let glyph_key = GlyphKey { font_key, size: font_size, character };
                 let rasterized = rasterizer.get_glyph(glyph_key).unwrap();
@@ -222,20 +191,7 @@ impl Glsl3Renderer {
                     self.tex = glyph.tex_id;
                 }
 
-                self.instances.push(InstanceData {
-                    col: column as u16,
-                    row: line as u16,
-
-                    top: glyph.top,
-                    left: glyph.left,
-                    width: glyph.width,
-                    height: glyph.height,
-
-                    uv_bot: glyph.uv_bot,
-                    uv_left: glyph.uv_left,
-                    uv_width: glyph.uv_width,
-                    uv_height: glyph.uv_height,
-                });
+                self.instances.push(InstanceData { col: (column + 5) as u16, row: line as u16 });
             }
         }
 
@@ -286,14 +242,9 @@ impl Glsl3Renderer {
             }
 
             // Compute scale and offset factors, from pixel to ndc space. Y is inverted.
-            //   [0, width - 2 * padding_x] to [-1, 1]
-            //   [height - 2 * padding_y, 0] to [-1, 1]
-            let scale_x = 2. / (width - 2. * padding_x);
-            let scale_y = -2. / (height - 2. * padding_y);
-            let offset_x = -1.;
-            let offset_y = 1.;
-
-            gl::Uniform4f(u_projection, offset_x, offset_y, scale_x, scale_y);
+            //   [0, width] to [-1, 1]
+            //   [height, 0] to [-1, 1]
+            gl::Uniform2f(u_projection, 2. / width, -2. / height);
 
             gl::UseProgram(0);
         }
@@ -332,16 +283,4 @@ pub struct InstanceData {
     // Coords.
     pub col: u16,
     pub row: u16,
-
-    // Glyph offset and size.
-    pub left: i16,
-    pub top: i16,
-    pub width: i16,
-    pub height: i16,
-
-    // UV offset and scale.
-    pub uv_left: f32,
-    pub uv_bot: f32,
-    pub uv_width: f32,
-    pub uv_height: f32,
 }
