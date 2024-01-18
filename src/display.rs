@@ -20,27 +20,11 @@ pub struct SizeInfo<T = f32> {
     pub height: T,
     pub cell_width: T,
     pub cell_height: T,
-    pub padding_x: T,
-    pub padding_y: T,
 }
 
 impl SizeInfo<f32> {
-    pub fn new(
-        width: f32,
-        height: f32,
-        cell_width: f32,
-        cell_height: f32,
-        padding_x: f32,
-        padding_y: f32,
-    ) -> SizeInfo {
-        SizeInfo {
-            width,
-            height,
-            cell_width,
-            cell_height,
-            padding_x: padding_x.floor(),
-            padding_y: padding_y.floor(),
-        }
+    pub fn new(width: f32, height: f32, cell_width: f32, cell_height: f32) -> SizeInfo {
+        SizeInfo { width, height, cell_width, cell_height }
     }
 }
 
@@ -101,8 +85,6 @@ impl Display {
             viewport_size.height as f32,
             cell_width,
             cell_height,
-            5. * (window.scale_factor() as f32),
-            5. * (window.scale_factor() as f32),
         );
 
         // Update OpenGL projection.

@@ -265,35 +265,13 @@ impl Glsl3Renderer {
 
     pub fn resize(&self, size: &SizeInfo) {
         unsafe {
-            gl::Viewport(
-                size.padding_x as i32,
-                size.padding_y as i32,
-                size.width as i32 - 2 * size.padding_x as i32,
-                size.height as i32 - 2 * size.padding_y as i32,
-            );
+            gl::Viewport(0, 0, size.width as i32, size.height as i32);
 
             gl::UseProgram(self.shader_program);
 
             let u_projection = self.u_projection;
             let width = size.width;
             let height = size.height;
-            let padding_x = size.padding_x;
-            let padding_y = size.padding_y;
-
-            // Bounds check.
-            if (width as u32) < (2 * padding_x as u32) || (height as u32) < (2 * padding_y as u32) {
-                return;
-            }
-
-            // Compute scale and offset factors, from pixel to ndc space. Y is inverted.
-            //   [0, width - 2 * padding_x] to [-1, 1]
-            //   [height - 2 * padding_y, 0] to [-1, 1]
-            let scale_x = 2. / (width - 2. * padding_x);
-            let scale_y = -2. / (height - 2. * padding_y);
-            let offset_x = -1.;
-            let offset_y = 1.;
-
-            gl::Uniform4f(u_projection, offset_x, offset_y, scale_x, scale_y);
 
             gl::UseProgram(0);
         }

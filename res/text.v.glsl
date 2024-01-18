@@ -11,17 +11,19 @@ layout(location = 2) in vec4 uv;
 
 out vec2 TexCoords;
 
-// Terminal properties
 uniform vec2 cellDim;
-uniform vec4 projection;
+
+vec2 pixelToClipSpace(vec2 point) {
+    point /= vec2(1728 * 2, 1051 * 2);  // Normalize to [0.0, 1.0].
+    point.y = 1.0 - point.y;            // Set origin to top left instead of bottom left.
+    return (point * 2.0) - 1.0;         // Convert to [-1.0, 1.0].
+}
 
 void main() {
     vec2 glyphOffset = glyph.xy;
     vec2 glyphSize = glyph.zw;
     vec2 uvOffset = uv.xy;
     vec2 uvSize = uv.zw;
-    vec2 projectionOffset = projection.xy;
-    vec2 projectionScale = projection.zw;
 
     // Compute vertex corner position
     vec2 position;
@@ -34,7 +36,7 @@ void main() {
     glyphOffset.y = cellDim.y - glyphOffset.y;
 
     vec2 finalPosition = cellPosition + glyphSize * position + glyphOffset;
-    gl_Position = vec4(projectionOffset + projectionScale * finalPosition, 0.0, 1.0);
+    gl_Position = vec4(pixelToClipSpace(finalPosition), 0.0, 1.0);
 
     TexCoords = uvOffset + position * uvSize;
 }
