@@ -21,20 +21,18 @@ void main() {
     vec2 uvOffset = uv.xy;
     vec2 uvSize = uv.zw;
 
-    // Compute vertex corner position
-    vec2 position;
-    position.x = (gl_VertexID == 0 || gl_VertexID == 1) ? 1. : 0.;
-    position.y = (gl_VertexID == 0 || gl_VertexID == 3) ? 0. : 1.;
+    vec2 cornerMask;
+    cornerMask.x = (gl_VertexID == 0 || gl_VertexID == 1) ? 1. : 0.;
+    cornerMask.y = (gl_VertexID == 0 || gl_VertexID == 3) ? 0. : 1.;
 
-    // Position of cell from top-left
+    // Position of cell from top-left.
     vec2 cellPosition = cellDim * gridCoords;
-
     glyphOffset.y = cellDim.y - glyphOffset.y;
 
-    vec2 finalPosition = cellPosition + glyphSize * position + glyphOffset;
-    finalPosition.x += 200;
+    cellPosition += glyphOffset + cornerMask * glyphSize;
+    cellPosition.x += 200;
 
-    gl_Position = vec4(pixelToClipSpace(finalPosition), 0.0, 1.0);
+    gl_Position = vec4(pixelToClipSpace(cellPosition), 0.0, 1.0);
 
-    TexCoords = uvOffset + position * uvSize;
+    TexCoords = uvOffset + cornerMask * uvSize;
 }
