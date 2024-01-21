@@ -2,7 +2,6 @@
 
 in vec2 TexCoords;
 flat in vec4 fg;
-flat in vec4 bg;
 
 layout(location = 0, index = 0) out vec4 color;
 layout(location = 0, index = 1) out vec4 alphaMask;
@@ -10,24 +9,25 @@ layout(location = 0, index = 1) out vec4 alphaMask;
 uniform sampler2D mask;
 
 void main() {
-    float colored = fg.a;
+    vec4 texel = texture(mask, TexCoords);
+    vec3 textColor = texel.rgb;
 
-    // The wide char information is already stripped, so it's safe to check for equality here.
+    float colored = fg.a;
     if (int(colored) == 1) {
-        // Color glyphs, like emojis.
-        color = texture(mask, TexCoords);
-        alphaMask = vec4(color.a);
+        alphaMask = vec4(texel.a);
 
         // Revert alpha premultiplication.
-        if (color.a != 0.0) {
-            color.rgb = vec3(color.rgb / color.a);
+        if (texel.a != 0.0) {
+            textColor = textColor / texel.a;
         }
 
-        color = vec4(color.rgb, 1.0);
+        color = vec4(textColor, 1.0);
     } else {
-        // Regular text glyphs.
-        vec3 textColor = texture(mask, TexCoords).rgb;
+        vec3 black = vec3(51, 51, 51) / 255.0;
+        vec3 yellow = vec3(249, 174, 88) / 255.0;
+        vec3 blue = vec3(102, 153, 204) / 255.0;
+
         alphaMask = vec4(textColor, textColor.r);
-        color = vec4(fg.rgb, 1.0);
+        color = vec4(yellow, 1.0);
     }
 }

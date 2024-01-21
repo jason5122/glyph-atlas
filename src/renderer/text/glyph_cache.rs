@@ -39,7 +39,7 @@ pub struct GlyphCache {
 impl GlyphCache {
     pub fn new(mut rasterizer: Rasterizer) -> GlyphCache {
         let font_name = String::from("Source Code Pro");
-        let font_size = Size::new(16.);
+        let font_size = Size::new(36.);
 
         let regular_desc = FontDesc::new(&font_name, &String::from("Regular"));
         let bold_desc = FontDesc::new(&font_name, &String::from("Bold"));

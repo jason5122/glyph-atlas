@@ -148,13 +148,13 @@ impl Glsl3Renderer {
 
         let strs = vec![
             "E",
-            "Hello world!",
-            "let x = &[1, 2, 4];",
-            "let mut iterator = x.iter();",
-            "assert_eq!(iterator.next(), Some(&1));",
-            "assert_eq!(iterator.next(), Some(&2));",
-            "assert_eq!(iterator.next(), Some(&4));",
-            "assert_eq!(iterator.next(), None);",
+            // "Hello world!",
+            // "let x = &[1, 2, 4];",
+            // "let mut iterator = x.iter();",
+            // "assert_eq!(iterator.next(), Some(&1));",
+            // "assert_eq!(iterator.next(), Some(&2));",
+            // "assert_eq!(iterator.next(), Some(&4));",
+            // "assert_eq!(iterator.next(), None);",
             "huh 🤨 🤨 🤨",
         ];
         let fg = Rgb::new(0x33, 0x33, 0x33);
