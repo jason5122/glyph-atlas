@@ -85,8 +85,6 @@ impl Atlas {
     pub fn insert_inner(&mut self, glyph: &RasterizedGlyph) -> Glyph {
         let offset_y = self.row_baseline;
         let offset_x = self.row_extent;
-        let height = glyph.height;
-        let width = glyph.width;
 
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.id);
@@ -98,8 +96,8 @@ impl Atlas {
                 0,
                 offset_x,
                 offset_y,
-                width,
-                height,
+                glyph.width,
+                glyph.height,
                 gl::RGB,
                 gl::UNSIGNED_BYTE,
                 buffer.as_ptr() as *const _,
@@ -109,16 +107,16 @@ impl Atlas {
         }
 
         // Update Atlas state.
-        self.row_extent = offset_x + width;
-        if height > self.row_tallest {
-            self.row_tallest = height;
+        self.row_extent = offset_x + glyph.width;
+        if glyph.height > self.row_tallest {
+            self.row_tallest = glyph.height;
         }
 
         // Generate UV coordinates.
         let uv_bot = offset_y as f32 / self.height as f32;
         let uv_left = offset_x as f32 / self.width as f32;
-        let uv_height = height as f32 / self.height as f32;
-        let uv_width = width as f32 / self.width as f32;
+        let uv_height = glyph.height as f32 / self.height as f32;
+        let uv_width = glyph.width as f32 / self.width as f32;
 
         if glyph.character == 'E' {
             println!(
@@ -126,8 +124,8 @@ impl Atlas {
                 self.id,
                 glyph.top as i16,
                 glyph.left as i16,
-                width as i16,
-                height as i16,
+                glyph.width as i16,
+                glyph.height as i16,
                 uv_bot,
                 uv_left,
                 uv_width,
@@ -139,8 +137,8 @@ impl Atlas {
             tex_id: self.id,
             top: glyph.top as i16,
             left: glyph.left as i16,
-            width: width as i16,
-            height: height as i16,
+            width: glyph.width as i16,
+            height: glyph.height as i16,
             uv_bot,
             uv_left,
             uv_width,

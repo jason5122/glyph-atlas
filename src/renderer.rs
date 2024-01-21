@@ -48,6 +48,7 @@ impl Glsl3Renderer {
         unsafe {
             gl::Enable(gl::BLEND);
             gl::BlendFunc(gl::SRC1_COLOR, gl::ONE_MINUS_SRC1_COLOR);
+            // gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE); // DEBUG: Draw shapes as wireframes.
 
             // Disable depth mask, as the renderer never uses depth tests.
             gl::DepthMask(gl::FALSE);
@@ -181,10 +182,10 @@ impl Glsl3Renderer {
             gl::UseProgram(self.shader_program);
             gl::Uniform2f(self.u_cell_dim, size_info.cell_width, size_info.cell_height);
 
-            gl::BindVertexArray(self.vao);
-            gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
             gl::ActiveTexture(gl::TEXTURE0);
+            gl::BindVertexArray(self.vao);
+
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo_instance);
         }
 
         let strs = vec![

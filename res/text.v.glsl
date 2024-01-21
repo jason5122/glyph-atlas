@@ -16,23 +16,22 @@ vec2 pixelToClipSpace(vec2 point) {
 }
 
 void main() {
-    vec2 glyphOffset = glyph.xy;
-    vec2 glyphSize = glyph.zw;
-    vec2 uvOffset = uv.xy;
-    vec2 uvSize = uv.zw;
+    vec2 glyphOffset = glyph.xy;  // (left, top)
+    vec2 glyphSize = glyph.zw;    // (width, height)
+    vec2 uvOffset = uv.xy;        // (uv_bot, uv_left)
+    vec2 uvSize = uv.zw;          // (uv_width, uv_height)
 
-    vec2 cornerMask;
-    cornerMask.x = (gl_VertexID == 0 || gl_VertexID == 1) ? 1. : 0.;
-    cornerMask.y = (gl_VertexID == 0 || gl_VertexID == 3) ? 0. : 1.;
+    vec2 position;
+    position.x = (gl_VertexID == 0 || gl_VertexID == 1) ? 1. : 0.;
+    position.y = (gl_VertexID == 0 || gl_VertexID == 3) ? 0. : 1.;
 
     // Position of cell from top-left.
     vec2 cellPosition = cellDim * gridCoords;
     glyphOffset.y = cellDim.y - glyphOffset.y;
 
-    cellPosition += glyphOffset + cornerMask * glyphSize;
+    cellPosition += glyphOffset + glyphSize * position;
     cellPosition.x += 200;
 
     gl_Position = vec4(pixelToClipSpace(cellPosition), 0.0, 1.0);
-
-    TexCoords = uvOffset + cornerMask * uvSize;
+    TexCoords = uvOffset + uvSize * position;
 }
