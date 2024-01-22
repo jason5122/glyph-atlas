@@ -120,10 +120,7 @@ impl Glsl3Renderer {
             // These are packed together because of an OpenGL driver issue on macOS, which caused a
             // `vec3(u8)` text color and a `u8` cell flags to increase the rendering time by a
             // huge margin.
-            add_attr!(4, gl::UNSIGNED_BYTE, u8);
-
-            // Background color.
-            add_attr!(4, gl::UNSIGNED_BYTE, u8);
+            add_attr!(1, gl::UNSIGNED_BYTE, u8);
 
             // Cleanup.
             gl::BindVertexArray(0);
@@ -155,21 +152,12 @@ impl Glsl3Renderer {
             // "assert_eq!(iterator.next(), Some(&2));",
             // "assert_eq!(iterator.next(), Some(&4));",
             // "assert_eq!(iterator.next(), None);",
-            "huh 🤨 🤨 🤨",
+            // "huh 🤨 🤨 🤨",
+            "yay 😃 😃 😃",
         ];
-        let fg = Rgb::new(0x33, 0x33, 0x33);
-        let bg = Rgb::new(0xfc, 0xfd, 0xfd);
         for (i, s) in strs.iter().enumerate() {
             for (column, character) in s.chars().enumerate() {
-                let cell = RenderableCell {
-                    character,
-                    line: 10 + i,
-                    column,
-                    bg_alpha: 1.0,
-                    fg,
-                    bg,
-                    font_key: 0,
-                };
+                let cell = RenderableCell { character, line: 10 + i, column };
                 cells.push(cell);
             }
         }
@@ -185,16 +173,11 @@ impl Glsl3Renderer {
         }
 
         for cell in cells {
-            let font_key = match cell.font_key {
-                0 => glyph_cache.font_key,
-                1 => glyph_cache.bold_key,
-                2 => glyph_cache.italic_key,
-                3 => glyph_cache.bold_italic_key,
-                _ => glyph_cache.font_key,
+            let glyph_key = GlyphKey {
+                font_key: glyph_cache.font_key,
+                size: glyph_cache.font_size,
+                character: cell.character,
             };
-
-            let glyph_key =
-                GlyphKey { font_key, size: glyph_cache.font_size, character: cell.character };
 
             let glyph = glyph_cache.get(glyph_key, self);
             self.batch.add_item(&cell, &glyph);
@@ -289,26 +272,8 @@ impl LoadGlyph for Glsl3Renderer {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct Rgb {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-}
-
-impl Rgb {
-    #[inline]
-    pub const fn new(r: u8, g: u8, b: u8) -> Self {
-        Self { r, g, b }
-    }
-}
-
 pub struct RenderableCell {
     pub character: char,
     pub line: usize,
     pub column: usize,
-    pub fg: Rgb,
-    pub bg: Rgb,
-    pub bg_alpha: f32,
-    pub font_key: usize,
 }

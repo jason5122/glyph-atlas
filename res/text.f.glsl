@@ -1,7 +1,7 @@
 #version 330 core
 
 in vec2 TexCoords;
-flat in vec4 fg;
+flat in int colored;
 
 layout(location = 0, index = 0) out vec4 color;
 layout(location = 0, index = 1) out vec4 alphaMask;
@@ -12,8 +12,7 @@ void main() {
     vec4 texel = texture(mask, TexCoords);
     vec3 textColor = texel.rgb;
 
-    float colored = fg.a;
-    if (int(colored) == 1) {
+    if (colored == 1) {
         alphaMask = vec4(texel.a);
 
         // Revert alpha premultiplication.
